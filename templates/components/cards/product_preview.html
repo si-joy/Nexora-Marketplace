@@ -1,0 +1,23 @@
+{% load static %}
+<article data-product data-product-id="{{ product.id }}" data-product-category="{{ product.category_slug }}" data-product-name="{{ product.name|lower }} {{ product.subtitle|lower }} {{ product.category|lower }}" class="group min-w-0 overflow-hidden rounded-2xl border border-line bg-surface transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:shadow-[0_15px_40px_var(--app-shadow)]">
+  <div class="product-art product-art--{{ product.visual }} relative flex h-[195px] items-center justify-center overflow-hidden sm:h-[218px]">
+    {% if product.badge %}<span class="absolute left-3 top-3 z-10 rounded-full bg-surface px-2.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wide text-foreground shadow-sm">{{ product.badge }}</span>{% endif %}
+    <button type="button" data-favorite-toggle data-item-id="{{ product.id }}" data-item-name="{{ product.name }}" aria-label="Save {{ product.name }} to favorites" aria-pressed="false" class="absolute right-3 top-3 z-10 flex size-9 items-center justify-center rounded-full bg-surface text-foreground shadow-sm transition hover:scale-105 hover:text-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-[18px]" aria-hidden="true"><path d="M20.8 4.9a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.3a5.5 5.5 0 0 0 0-7.8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <a href="{% url 'catalog:product_detail' product.id %}" class="flex h-full w-full items-center justify-center" aria-label="View {{ product.name }} details"><img class="h-[170px] w-[88%] object-contain drop-shadow-xl transition duration-500 group-hover:scale-[1.065] sm:h-[192px]" src="{% static product.image %}" alt="Illustration of {{ product.name }}" loading="lazy" width="240" height="200"></a>
+  </div>
+  <div class="p-4 sm:p-5">
+    <p class="mb-1.5 text-[10px] font-bold uppercase tracking-[.13em] text-muted">{{ product.category }}</p>
+    <h3 class="min-h-6 truncate text-[14px] font-bold leading-6 text-foreground sm:text-[15px]" title="{{ product.name }}"><a class="hover:text-primary" href="{% url 'catalog:product_detail' product.id %}">{{ product.name }}</a></h3>
+    <p class="mt-0.5 truncate text-xs text-muted">{{ product.subtitle }}</p>
+    <div class="mt-4 flex min-h-7 items-end gap-2">
+      <span class="text-lg font-extrabold tracking-tight text-foreground">৳{{ product.price }}</span>
+      {% if product.old_price %}<del class="mb-0.5 text-xs text-muted">৳{{ product.old_price }}</del>{% endif %}
+    </div>
+    <button type="button" data-add-bag data-item-id="{{ product.id }}" data-item-name="{{ product.name }}" class="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-primary bg-primary text-xs font-bold text-on-primary transition hover:bg-primary-hover">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+      Add to bag
+    </button>
+  </div>
+</article>

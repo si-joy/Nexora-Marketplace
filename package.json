@@ -1,0 +1,13 @@
+{
+  "name": "multivendor-marketplace-foundation",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev:css": "tailwindcss -i ./static/src/css/app.css -o ./static/dist/app.css --watch",
+    "build:css": "tailwindcss -i ./static/src/css/app.css -o ./static/dist/app.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.0",
+    "tailwindcss": "^4.1.0"
+  }
+}

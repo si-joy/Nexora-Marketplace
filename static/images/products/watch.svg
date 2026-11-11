@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" role="img" aria-label="Watch illustration">
+    <defs>
+      <linearGradient id="metal" x1=".12" y1="0" x2=".88" y2="1"><stop stop-color="#f8fbff"/><stop offset=".33" stop-color="#cfd9ed"/><stop offset=".7" stop-color="#71829e"/><stop offset="1" stop-color="#e8effc"/></linearGradient>
+      <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#455778"/><stop offset=".48" stop-color="#1c2945"/><stop offset="1" stop-color="#0a142a"/></linearGradient>
+      <linearGradient id="blue" x1=".12" y1="0" x2=".8" y2="1"><stop stop-color="#99c8ff"/><stop offset=".38" stop-color="#527bff"/><stop offset=".95" stop-color="#2433a5"/></linearGradient>
+      <linearGradient id="peach" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ffdec2"/><stop offset=".6" stop-color="#f69c7e"/><stop offset="1" stop-color="#b66673"/></linearGradient>
+      <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9bf4db"/><stop offset=".5" stop-color="#42c1ad"/><stop offset="1" stop-color="#126d88"/></linearGradient>
+      <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#191e4d"/><stop offset=".45" stop-color="#345bb4"/><stop offset="1" stop-color="#8fdce9"/></linearGradient>
+      <radialGradient id="lens"><stop stop-color="#4cb8d3"/><stop offset=".32" stop-color="#193d67"/><stop offset=".55" stop-color="#0a1123"/><stop offset=".8" stop-color="#5b6886"/><stop offset="1" stop-color="#0c1427"/></radialGradient>
+      <filter id="shadow" x="-35%" y="-40%" width="170%" height="200%"><feDropShadow dx="0" dy="14" stdDeviation="10" flood-color="#142849" flood-opacity=".20"/></filter>
+      <filter id="soft" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#091627" flood-opacity=".18"/></filter>
+    </defs>
+    <g filter="url(#shadow)" transform="rotate(-11 180 150)">
+  <rect x="143" y="12" width="74" height="270" rx="29" fill="url(#metal)" stroke="#8292a9" stroke-width="3"/>
+  <rect x="158" y="14" width="44" height="58" rx="12" fill="#8996b0" opacity=".55"/>
+  <rect x="158" y="226" width="44" height="54" rx="12" fill="#8996b0" opacity=".55"/>
+  <rect x="110" y="62" width="140" height="178" rx="42" fill="#293852" stroke="#d2def0" stroke-width="7"/>
+  <rect x="122" y="73" width="116" height="156" rx="32" fill="#0c152b"/>
+  <rect x="130" y="81" width="100" height="139" rx="26" fill="url(#screen)"/>
+  <circle cx="180" cy="147" r="38" fill="none" stroke="#a8ecff" stroke-opacity=".32" stroke-width="8"/>
+  <circle cx="180" cy="147" r="23" fill="none" stroke="#e4f7ff" stroke-opacity=".8" stroke-width="3"/>
+  <path d="M180 127v22l16 10" fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="180" y="193" fill="#e6f7ff" font-family="sans-serif" font-size="11" font-weight="bold" text-anchor="middle">MON 24</text>
+  <rect x="247" y="131" width="8" height="27" rx="4" fill="#aabbd2"/>
+</g>
+    </svg>

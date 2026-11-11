@@ -1,0 +1,19 @@
+{% if request.user.is_authenticated %}
+  <details class="account-dropdown relative">
+    <summary class="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-xl border border-line bg-surface px-3 text-xs font-bold text-foreground hover:border-primary hover:text-primary [&::-webkit-details-marker]:hidden" aria-label="Account menu">
+      <span class="flex size-6 items-center justify-center rounded-full bg-primary/10 text-xs font-extrabold text-primary" aria-hidden="true">{{ request.user.email|first|upper }}</span>
+      <span class="hidden sm:inline">Account</span><span class="text-muted" aria-hidden="true">⌄</span>
+    </summary>
+    <div class="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-line bg-surface p-2 shadow-xl shadow-ink/10">
+      <p class="truncate border-b border-line px-3 py-2 text-xs text-muted" title="{{ request.user.email }}">{{ request.user.email }}</p>
+      <a href="{% url 'accounts:dashboard' %}" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-soft">My dashboard</a>
+      <a href="{% url 'vendors:dashboard' %}" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-soft">Seller center</a>
+      <a href="{% url 'accounts:password_change' %}" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-soft">Security settings</a>
+      {% if request.user.is_staff %}<a href="{% url 'admin:index' %}" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-soft">Admin panel</a>{% endif %}
+      <form action="{% url 'accounts:logout' %}" method="post" class="mt-1 border-t border-line pt-1">{% csrf_token %}<button type="submit" class="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-danger hover:bg-surface-soft">Sign out</button></form>
+    </div>
+  </details>
+{% else %}
+  <a href="{% url 'accounts:login' %}" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-line px-3 text-xs font-bold text-foreground hover:border-primary hover:text-primary">Sign in</a>
+  <a href="{% url 'accounts:register' %}" class="hidden min-h-10 items-center justify-center rounded-xl bg-primary px-3.5 text-xs font-bold text-on-primary hover:bg-primary-hover md:inline-flex">Join free</a>
+{% endif %}

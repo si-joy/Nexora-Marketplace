@@ -1,0 +1,7 @@
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+exclude = [".venv", "staticfiles", "node_modules", "static/dist", "apps/*/migrations"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

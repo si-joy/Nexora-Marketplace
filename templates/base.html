@@ -1,0 +1,26 @@
+{% load static %}
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Nexora — modern multi-vendor shopping experience. Demo storefront.">
+  <title>{% block title %}Nexora | Discover more{% endblock %}</title>
+  <script src="{% static 'js/theme.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'dist/app.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-background font-sans text-foreground antialiased">
+  <a href="#main-content" class="skip-to-main">Skip to content</a>
+  {% include 'components/navigation/navbar.html' %}
+  {% if messages %}<div class="mx-auto max-w-7xl space-y-2 px-4 pt-4 sm:px-6 xl:px-8" role="status" aria-live="polite">{% for message in messages %}<div class="rounded-xl border border-line bg-surface px-4 py-3 text-sm font-semibold text-foreground shadow-sm">{{ message }}</div>{% endfor %}</div>{% endif %}
+  <main id="main-content">{% block content %}{% endblock %}</main>
+  {% include 'components/footer.html' %}
+  {% include 'components/cart_drawer.html' %}
+  <div id="storefront-toast" class="storefront-toast" role="status" aria-live="polite"></div>
+  {{ demo_catalog_products|json_script:"demo-catalog-json" }}
+  <script defer src="{% static 'js/storefront.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

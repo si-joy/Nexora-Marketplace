@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Sign in | Nexora{% endblock %}
+{% block content %}
+<section class="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 md:grid-cols-2 md:items-center md:py-20 xl:px-8">
+  <div class="order-2 rounded-[28px] bg-surface-soft p-8 md:order-1 md:p-12">
+    <div class="mb-7 flex size-12 items-center justify-center rounded-2xl bg-primary text-2xl font-black text-on-primary">N</div>
+    <p class="section-overline">YOUR NEXORA ACCOUNT</p>
+    <h1 class="mt-3 text-4xl font-black leading-tight tracking-tight text-foreground">Welcome back<span class="text-primary">.</span></h1>
+    <p class="mt-4 max-w-sm text-sm leading-7 text-muted">Sign in to manage your account, discover new essentials and get ready for the next chapter of Nexora.</p>
+    <div class="mt-9 grid gap-3 text-sm font-semibold text-foreground"><p>✓ One account for shopping and selling</p><p>✓ Secure password-based authentication</p><p>✓ Light and dark mode on every page</p></div>
+  </div>
+  <div class="order-1 rounded-[26px] border border-line bg-surface p-6 shadow-sm md:order-2 md:p-9">
+    <p class="section-overline">SIGN IN</p><h2 class="mt-2 text-2xl font-extrabold text-foreground">Access your account</h2>
+    <p class="mt-2 text-sm text-muted">New to Nexora? <a href="{% url 'accounts:register' %}" class="font-bold text-primary hover:underline">Create a free account</a></p>
+    <form method="post" action="{% url 'accounts:login' %}" class="mt-7 space-y-5">
+      {% csrf_token %}{% include 'components/forms/errors.html' %}
+      {% for field in form %}{% include 'components/forms/field.html' with field=field %}{% endfor %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      <div class="text-right"><a href="{% url 'accounts:password_reset' %}" class="text-xs font-bold text-primary hover:underline">Forgot password?</a></div>
+      <button type="submit" class="w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-on-primary hover:bg-primary-hover">Sign in →</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

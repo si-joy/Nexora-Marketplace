@@ -1,0 +1,111 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}{{ product.name }} | Nexora{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 xl:px-8">
+  {% url 'catalog:shop' as shop_url %}
+  {% include 'components/breadcrumbs.html' with parent_url=shop_url parent_label='Shop' current_label=product.name %}
+
+  <section class="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)] lg:gap-12">
+    <div data-product-gallery class="grid gap-4 lg:grid-cols-[88px_minmax(0,1fr)] lg:items-start">
+      <div class="order-2 flex gap-3 overflow-x-auto pb-2 scrollbar-none lg:order-1 lg:flex-col lg:overflow-visible lg:pb-0">
+        {% for item in gallery %}
+          <button type="button" data-gallery-thumb data-index="{{ forloop.counter0 }}" data-src="{% static item.src %}" data-alt="{{ item.alt }}" data-art-class="{{ item.art_class }}" class="product-gallery-thumb {% if forloop.first %}is-active{% endif %}" aria-label="View {{ item.label }}">
+            <span class="product-gallery-thumb__art {{ item.art_class }}">
+              <img src="{% static item.src %}" alt="" class="h-14 w-14 object-contain sm:h-16 sm:w-16">
+            </span>
+          </button>
+        {% endfor %}
+      </div>
+      <div class="order-1 lg:order-2">
+        <div data-gallery-stage class="product-gallery-stage {{ gallery.0.art_class }}">
+          <button type="button" data-gallery-nav="prev" class="gallery-nav gallery-nav--prev" aria-label="Previous image">‹</button>
+          <img data-gallery-main-image src="{% static gallery.0.src %}" width="520" height="520" alt="{{ gallery.0.alt }}" class="max-h-[470px] w-full object-contain drop-shadow-2xl">
+          <button type="button" data-gallery-nav="next" class="gallery-nav gallery-nav--next" aria-label="Next image">›</button>
+        </div>
+        <div class="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-secondary">Gallery preview</p>
+            <p class="mt-1 text-sm text-muted">5-image product slider demo inspired by your preferred layout.</p>
+          </div>
+          <span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-bold text-foreground">5 Photos</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-5">
+      <div class="flex flex-wrap items-center gap-2">
+        <a href="{% url 'catalog:category_detail' product.category_slug %}" class="section-overline hover:underline">{{ product.category }}</a>
+        {% if product.badge %}<span class="rounded-full bg-surface-soft px-3 py-1 text-[11px] font-bold text-primary">{{ product.badge }}</span>{% endif %}
+        <span class="rounded-full bg-surface-soft px-3 py-1 text-[11px] font-bold text-muted">Demo product</span>
+      </div>
+      <div>
+        <h1 class="text-3xl font-black tracking-tight text-foreground sm:text-5xl">{{ product.name }}</h1>
+        <p class="mt-3 max-w-2xl text-base leading-8 text-muted">{{ product.subtitle }}</p>
+      </div>
+      <div class="rounded-[28px] border border-line bg-surface p-5 shadow-[0_18px_45px_var(--app-shadow)] sm:p-6">
+        <div class="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
+          <div class="flex items-end gap-3">
+            <strong class="text-3xl font-black sm:text-4xl">৳{{ product.price }}</strong>
+            {% if product.old_price %}<del class="mb-1 text-base text-muted">৳{{ product.old_price }}</del>{% endif %}
+          </div>
+          <div class="rounded-2xl bg-surface-soft px-4 py-3 text-sm font-bold text-success">Ready for demo cart</div>
+        </div>
+        <div class="mt-5 grid gap-3 sm:grid-cols-3">
+          <div class="rounded-2xl bg-surface-soft p-4"><p class="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">Category</p><p class="mt-1 font-bold">{{ product.category }}</p></div>
+          <div class="rounded-2xl bg-surface-soft p-4"><p class="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">Seller</p><p class="mt-1 font-bold">{{ product.store_name }}</p></div>
+          <div class="rounded-2xl bg-surface-soft p-4"><p class="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">Gallery</p><p class="mt-1 font-bold">5 lifestyle views</p></div>
+        </div>
+        <div class="mt-5 space-y-3">
+          <h2 class="text-sm font-extrabold tracking-tight text-foreground">Why you’ll like it</h2>
+          <ul class="space-y-3">
+            {% for feature in product.features %}
+              <li class="flex items-start gap-3 rounded-2xl bg-surface-soft px-4 py-3 text-sm text-muted"><span class="mt-0.5 text-secondary">✦</span><span>{{ feature }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button type="button" data-add-bag data-item-id="{{ product.id }}" class="flex-1 rounded-2xl bg-primary px-5 py-4 text-sm font-extrabold text-on-primary hover:bg-primary-hover">Add to bag</button>
+          <button type="button" data-favorite-toggle data-item-id="{{ product.id }}" data-item-name="{{ product.name }}" aria-pressed="false" aria-label="Save {{ product.name }} to wishlist" class="rounded-2xl border border-line bg-surface px-5 py-4 text-sm font-extrabold hover:text-primary">♡ Save</button>
+        </div>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="rounded-2xl border border-line bg-surface p-5">
+          <p class="text-sm font-extrabold text-foreground">Seller storefront</p>
+          <a href="{% url 'catalog:store_detail' product.store_slug %}" class="mt-2 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline">{{ product.store_name }} <span aria-hidden="true">→</span></a>
+          <p class="mt-3 text-sm leading-7 text-muted">Explore more items from this sample demo store.</p>
+        </div>
+        <div class="rounded-2xl border border-line bg-surface p-5">
+          <p class="text-sm font-extrabold text-foreground">Demo notice</p>
+          <p class="mt-3 text-sm leading-7 text-muted">Illustrative product page only. Cart, wishlist and imagery are demo features for the storefront experience.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-12 grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
+    <div class="rounded-[28px] border border-line bg-surface p-6 sm:p-7">
+      <p class="section-overline">OVERVIEW</p>
+      <h2 class="mt-2 text-2xl font-black tracking-tight">A cleaner product detail experience.</h2>
+      <div class="mt-4 space-y-4 text-sm leading-7 text-muted">
+        <p>This updated product page is designed to feel closer to a real digital commerce experience: a large visual stage, a thumbnail gallery, clearer product hierarchy and a stronger purchase section.</p>
+        <p>You can use the same structure for future real products once seller uploads are connected with multiple gallery images.</p>
+      </div>
+    </div>
+    <div class="rounded-[28px] border border-line bg-surface p-6 sm:p-7">
+      <p class="section-overline">AT A GLANCE</p>
+      <div class="mt-4 space-y-3 text-sm text-muted">
+        <div class="flex items-center justify-between rounded-2xl bg-surface-soft px-4 py-3"><span>Image gallery</span><strong class="text-foreground">5 thumbnails</strong></div>
+        <div class="flex items-center justify-between rounded-2xl bg-surface-soft px-4 py-3"><span>Layout</span><strong class="text-foreground">Modern 2-column</strong></div>
+        <div class="flex items-center justify-between rounded-2xl bg-surface-soft px-4 py-3"><span>Primary CTA</span><strong class="text-foreground">Add to bag</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-14">
+    <div class="mb-6 flex items-center justify-between"><h2 class="text-xl font-extrabold">You may also like</h2><a class="text-xs font-bold text-primary hover:underline" href="{% url 'catalog:shop' %}">Shop more →</a></div>
+    <div class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">{% for item in related %}{% include 'components/cards/product_preview.html' with product=item %}{% endfor %}</div>
+  </section>
+
+  {% include 'components/demo_notice.html' %}
+</div>
+{% endblock %}

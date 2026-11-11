@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Nexora — Your everyday, upgraded{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 xl:px-8">
+  <section class="mt-5 grid gap-4 lg:mt-7 lg:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_310px]" aria-label="Featured collections">
+    <div class="hero-shop relative flex min-h-[365px] items-center overflow-hidden rounded-[26px] px-7 py-12 sm:min-h-[440px] sm:px-12 lg:min-h-[470px] xl:px-14">
+      <div class="hero-orb hero-orb--one" aria-hidden="true"></div><div class="hero-orb hero-orb--two" aria-hidden="true"></div>
+      <div class="relative z-10 max-w-md lg:max-w-[395px] xl:max-w-[455px]">
+        <span class="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[.18em] text-white/90 backdrop-blur-md">✦ &nbsp; The new tech edit</span>
+        <h1 class="text-[39px] font-extrabold leading-[1.08] tracking-[-.055em] text-white sm:text-[55px] lg:text-[49px] xl:text-[61px]">Tech you'll love.<br><span class="hero-highlight">Every single day.</span></h1>
+        <p class="mt-5 max-w-xs text-[13px] leading-7 text-white/75 sm:text-[15px]">Thoughtfully picked gadgets, everyday essentials and fresh finds in one beautiful place.</p>
+        <a href="{% url 'catalog:shop' %}" class="mt-7 inline-flex items-center gap-3 rounded-xl bg-white px-5 py-3.5 text-xs font-extrabold text-hero-button transition hover:-translate-y-0.5 hover:shadow-lg sm:text-sm">Shop the collection <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <p class="mt-5 text-[11px] font-medium text-white/55">Preview collection · Sample products</p>
+      </div>
+      <div class="hero-product pointer-events-none absolute bottom-[-9%] right-[-9%] z-0 w-[64%] sm:bottom-[-10%] sm:right-[-3%] sm:w-[56%] lg:right-[-8%] lg:w-[58%] xl:right-[-3%] xl:w-[55%]" aria-hidden="true"><img src="{% static 'images/products/headphones.svg' %}" alt="" width="520" height="490" class="h-full w-full object-contain drop-shadow-2xl"></div>
+      <div class="hero-floating absolute bottom-8 right-8 hidden rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-white backdrop-blur-xl xl:block"><div class="text-[10px] uppercase tracking-widest text-white/65">Featured item</div><div class="mt-1 text-sm font-bold">Studio Wireless</div><div class="text-xs font-semibold text-white/75">৳4,990</div></div>
+    </div>
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-1">
+      <a href="{% url 'catalog:category_detail' 'wearables' %}" class="promo-tile promo-tile--peach group relative flex min-h-[185px] flex-col justify-between overflow-hidden rounded-[24px] p-5 sm:p-7 lg:min-h-[225px]">
+        <div class="relative z-10"><p class="text-[10px] font-extrabold uppercase tracking-[.15em] text-promo-overline">NEW ARRIVALS</p><h2 class="mt-2 max-w-[170px] text-xl font-extrabold leading-tight tracking-tight text-promo-title sm:text-2xl">Time to level up.</h2><span class="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-promo-title">Explore wearables <span aria-hidden="true">→</span></span></div>
+        <img src="{% static 'images/products/watch.svg' %}" alt="" class="pointer-events-none absolute -bottom-7 -right-6 h-[130px] w-[130px] rotate-[-10deg] object-contain transition group-hover:scale-110 sm:h-[168px] sm:w-[168px] lg:bottom-[-28px] lg:right-[-6px]" width="170" height="170">
+      </a>
+      <a href="{% url 'catalog:category_detail' 'gaming' %}" class="promo-tile promo-tile--mint group relative flex min-h-[185px] flex-col justify-between overflow-hidden rounded-[24px] p-5 sm:p-7 lg:min-h-[225px]">
+        <div class="relative z-10"><p class="text-[10px] font-extrabold uppercase tracking-[.15em] text-promo-overline">MADE FOR PLAY</p><h2 class="mt-2 max-w-[170px] text-xl font-extrabold leading-tight tracking-tight text-promo-title sm:text-2xl">Play without limits.</h2><span class="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-promo-title">Shop gaming <span aria-hidden="true">→</span></span></div>
+        <img src="{% static 'images/products/controller.svg' %}" alt="" class="pointer-events-none absolute -bottom-5 -right-5 h-[125px] w-[125px] rotate-[-10deg] object-contain transition group-hover:scale-110 sm:h-[155px] sm:w-[155px] lg:bottom-[-24px] lg:right-[-4px]" width="165" height="165">
+      </a>
+    </div>
+  </section>
+  <div class="my-8 grid grid-cols-2 gap-3 rounded-2xl border border-line bg-surface px-5 py-5 lg:grid-cols-4 lg:gap-5 lg:px-8">
+    <div class="flex items-center gap-3"><span class="feature-icon" aria-hidden="true">✦</span><div><p class="text-xs font-extrabold text-foreground sm:text-sm">Fresh finds</p><p class="mt-0.5 text-[11px] text-muted">Discover new favorites</p></div></div>
+    <div class="flex items-center gap-3"><span class="feature-icon" aria-hidden="true">↗</span><div><p class="text-xs font-extrabold text-foreground sm:text-sm">Easy exploring</p><p class="mt-0.5 text-[11px] text-muted">Find what you love</p></div></div>
+    <div class="flex items-center gap-3"><span class="feature-icon" aria-hidden="true">◈</span><div><p class="text-xs font-extrabold text-foreground sm:text-sm">Everyday essentials</p><p class="mt-0.5 text-[11px] text-muted">All in one place</p></div></div>
+    <div class="flex items-center gap-3"><span class="feature-icon" aria-hidden="true">☾</span><div><p class="text-xs font-extrabold text-foreground sm:text-sm">Your vibe, your way</p><p class="mt-0.5 text-[11px] text-muted">Light & dark appearance</p></div></div>
+  </div>
+  <section id="shop-categories" class="scroll-mt-40 py-7 sm:py-9" aria-labelledby="categories-title">
+    <div class="mb-6 flex items-end justify-between gap-4"><div><span class="section-overline">SHOP YOUR WAY</span><h2 id="categories-title" class="mt-1.5 text-2xl font-extrabold tracking-[-.035em] text-foreground sm:text-[29px]">Browse by category<span class="text-primary">.</span></h2></div><a href="{% url 'catalog:shop' %}" class="hidden text-xs font-bold text-primary hover:underline sm:block">View all products ↗</a></div>
+    <div class="grid grid-cols-3 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
+      {% for category in demo_categories %}
+      <a href="{% url 'catalog:category_detail' category.slug %}" class="category-tile group flex min-w-0 flex-col items-center rounded-2xl border border-line bg-surface px-2 pb-4 pt-3 text-center transition hover:-translate-y-1 hover:border-primary/50 hover:shadow-[0_12px_28px_var(--app-shadow)] sm:pt-5">
+        <div class="product-art product-art--{{ category.slug }} mb-3 flex h-[82px] w-full items-center justify-center rounded-xl sm:h-[104px]"><img src="{% static category.image %}" alt="" loading="lazy" width="112" height="95" class="h-[78px] w-[90%] object-contain transition duration-300 group-hover:scale-110 sm:h-[92px]"></div>
+        <span class="text-xs font-extrabold text-foreground sm:text-sm">{{ category.name }}</span><span class="mt-1 hidden text-[11px] text-muted sm:block">{{ category.caption }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  <section id="shop-products" class="scroll-mt-40 py-10 sm:py-12" aria-labelledby="products-title">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-4"><div><span class="section-overline">THE CURATED EDIT</span><h2 id="products-title" class="mt-1.5 text-2xl font-extrabold tracking-[-.035em] text-foreground sm:text-[29px]">Trending right now<span class="text-primary">.</span></h2><p class="mt-1.5 text-xs text-muted">A glimpse of what is waiting in our full shop.</p></div><span id="product-results" class="text-xs font-semibold text-muted" aria-live="polite">4 featured products</span></div>
+    <div id="product-grid" class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+      {% for product in demo_products %}{% include 'components/cards/product_preview.html' with product=product %}{% endfor %}
+    </div>
+    <div class="mt-8 text-center"><a href="{% url 'catalog:shop' %}" class="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-6 py-3.5 text-sm font-extrabold text-foreground transition hover:border-primary hover:text-primary">Shop all products →</a></div>
+  </section>
+  <section id="featured-collection" class="feature-banner relative mt-8 flex min-h-[245px] flex-col justify-between gap-5 overflow-hidden rounded-[27px] p-7 sm:min-h-[260px] sm:flex-row sm:items-center sm:p-10 lg:pl-14">
+    <div class="relative z-10 max-w-lg"><span class="text-[11px] font-extrabold uppercase tracking-[.2em] text-feature-kicker">WORK. PLAY. CREATE.</span><h2 class="mt-3 text-[28px] font-extrabold leading-tight tracking-[-.05em] text-feature-title sm:text-4xl">Your setup deserves<br>something special.</h2><p class="mt-3 max-w-sm text-sm leading-6 text-feature-copy">Refresh your desk with thoughtfully chosen gear.</p><a href="{% url 'catalog:category_detail' 'computing' %}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-feature-button px-5 py-3 text-xs font-bold text-feature-button-text transition hover:-translate-y-0.5">Explore computing <span aria-hidden="true">→</span></a></div>
+    <img src="{% static 'images/products/laptop.svg' %}" alt="Illustration of a laptop" loading="lazy" class="relative z-0 mx-auto h-[170px] w-[250px] object-contain sm:absolute sm:bottom-[-39px] sm:right-0 sm:h-[290px] sm:w-[44%] lg:right-8" width="400" height="290">
+  </section>
+  <p class="mt-6 text-center text-[11px] leading-6 text-muted">This is a design preview. Favorites and shopping bag are browser-only demos; no real orders or payments are processed.</p>
+</div>
+{% endblock %}

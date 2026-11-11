@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+
+# Credentials / local data
+.env
+.env.*
+!.env.example
+*.sqlite3
+media/
+
+# Frontend
+node_modules/
+static/dist/*.css
+static/dist/*.map
+
+# Deployment & IDE
+staticfiles/
+.vscode/
+.idea/
+.DS_Store
+
+# Local uploaded catalog images
+/media/

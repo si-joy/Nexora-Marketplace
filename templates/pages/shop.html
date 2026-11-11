@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Shop all products | Nexora{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 xl:px-8">
+  {% include 'components/breadcrumbs.html' with current_label='Shop' %}
+  <div class="page-hero mb-7 flex flex-col gap-5 rounded-[26px] border border-line bg-surface p-6 sm:flex-row sm:items-end sm:justify-between sm:p-9">
+    <div><p class="section-overline">DISCOVER YOUR NEXT FAVORITE</p><h1 class="mt-2 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">Shop the collection<span class="text-primary">.</span></h1><p class="mt-3 max-w-lg text-sm leading-7 text-muted">Browse tech, everyday essentials and fresh finds across every category.</p></div>
+    <a href="{% url 'catalog:categories' %}" class="inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs font-bold text-on-primary hover:bg-primary-hover">Browse categories →</a>
+  </div>
+  <div class="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+    <aside class="h-fit rounded-2xl border border-line bg-surface p-5" aria-label="Product categories">
+      <h2 class="mb-4 text-sm font-extrabold text-foreground">Categories</h2>
+      <div class="space-y-2 text-sm"><a href="{% url 'catalog:shop' %}?q={{ query|urlencode }}&sort={{ selected_sort }}" class="flex justify-between rounded-lg px-3 py-2 {% if not selected_category %}bg-surface-soft font-bold text-primary{% else %}text-muted hover:bg-surface-soft hover:text-primary{% endif %}">All products <span>→</span></a>
+        {% for category in demo_categories %}<a href="{% url 'catalog:shop' %}?category={{ category.slug }}&q={{ query|urlencode }}&sort={{ selected_sort }}" class="flex justify-between rounded-lg px-3 py-2 {% if selected_category == category.slug %}bg-surface-soft font-bold text-primary{% else %}text-muted hover:bg-surface-soft hover:text-primary{% endif %}">{{ category.name }} <span>→</span></a>{% endfor %}
+      </div>
+      <div class="mt-6 border-t border-line pt-4 text-xs leading-6 text-muted">Demo catalog · New categories will be managed from the database in a later phase.</div>
+    </aside>
+    <div>
+      <form method="get" action="{% url 'catalog:shop' %}" class="mb-5 flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 sm:flex-row sm:items-center">
+        <label class="sr-only" for="shop-page-search">Search products</label><input type="search" id="shop-page-search" name="q" value="{{ query }}" placeholder="Search products..." class="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface-soft px-4 text-sm text-foreground outline-none focus:border-primary">
+        <label class="sr-only" for="shop-sort">Sort products</label><select id="shop-sort" name="sort" class="min-h-11 rounded-xl border border-line bg-surface-soft px-3 text-sm text-foreground"><option value="featured" {% if selected_sort == 'featured' %}selected{% endif %}>Featured</option><option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>Price: Low to high</option><option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>Price: High to low</option><option value="name" {% if selected_sort == 'name' %}selected{% endif %}>Name: A to Z</option></select>
+        <input type="hidden" name="category" value="{{ selected_category }}"><button type="submit" class="min-h-11 rounded-xl bg-primary px-5 text-sm font-bold text-on-primary hover:bg-primary-hover">Apply</button>
+      </form>
+      <div class="mb-5 flex items-center justify-between gap-3"><h2 class="text-base font-extrabold text-foreground">{% if query %}Search results for “{{ query }}”{% else %}All products{% endif %}</h2><span class="text-xs font-semibold text-muted">{{ count }} item{{ count|pluralize }}</span></div>
+      {% if page.object_list %}<div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">{% for product in page.object_list %}{% include 'components/cards/product_preview.html' with product=product %}{% endfor %}</div>
+      {% else %}<div class="rounded-2xl border border-dashed border-line bg-surface px-6 py-16 text-center"><h3 class="text-lg font-bold">No products found</h3><p class="mt-2 text-sm text-muted">Try another search or category.</p><a href="{% url 'catalog:shop' %}" class="mt-5 inline-block rounded-xl bg-primary px-5 py-3 text-xs font-bold text-on-primary">Clear filters</a></div>{% endif %}
+      {% if page.has_other_pages %}<nav aria-label="Catalog pagination" class="mt-7 flex items-center justify-center gap-3 text-sm font-bold">{% if page.has_previous %}<a class="rounded-xl border border-line bg-surface px-4 py-2 hover:text-primary" href="?q={{ query|urlencode }}&category={{ selected_category }}&sort={{ selected_sort }}&page={{ page.previous_page_number }}">← Previous</a>{% endif %}<span class="text-muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a class="rounded-xl border border-line bg-surface px-4 py-2 hover:text-primary" href="?q={{ query|urlencode }}&category={{ selected_category }}&sort={{ selected_sort }}&page={{ page.next_page_number }}">Next →</a>{% endif %}</nav>{% endif %}
+    </div>
+  </div>
+  {% include 'components/demo_notice.html' %}
+</div>
+{% endblock %}

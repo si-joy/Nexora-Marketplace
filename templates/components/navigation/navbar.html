@@ -1,0 +1,51 @@
+{% load static %}
+<div class="bg-ink text-on-ink">
+  <div class="mx-auto flex max-w-7xl items-center justify-center gap-2 px-4 py-2 text-center text-[11px] font-medium tracking-wide sm:text-xs">
+    <span class="inline-block size-1.5 rounded-full bg-accent"></span>
+    <span>DEMO STORE · Discover modern essentials, all in one place</span>
+    <span class="hidden text-on-ink/60 sm:inline">·</span><a href="{% url 'catalog:shop' %}" class="hidden underline decoration-on-ink/30 underline-offset-4 hover:decoration-on-ink sm:inline">Browse products</a>
+  </div>
+</div>
+<header class="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur-xl">
+  <div class="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-x-4 gap-y-3 px-4 py-3.5 sm:px-6 lg:grid-cols-[auto_minmax(300px,1fr)_auto] lg:gap-x-9 lg:py-5 xl:px-8">
+    <a href="{% url 'core:home' %}" class="inline-flex w-fit items-center gap-2.5" aria-label="Nexora homepage">
+      <span class="flex size-10 items-center justify-center rounded-[13px] bg-primary text-on-primary shadow-sm" aria-hidden="true">
+        <svg viewBox="0 0 32 32" class="size-6" fill="none"><path d="M7 24V8h4l10 11V8h4v16h-4L11 13v11H7Z" fill="currentColor"/><circle cx="25" cy="7" r="2" fill="currentColor"/></svg>
+      </span>
+      <span class="text-[23px] font-extrabold tracking-[-.06em] text-foreground">nexora<span class="text-primary">.</span></span>
+    </a>
+    <form id="shop-search" action="{% url 'catalog:shop' %}" method="get" role="search" class="order-3 col-span-2 flex h-11 w-full items-center overflow-hidden rounded-xl border border-line bg-surface-soft transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 lg:order-none lg:col-span-1 lg:h-12">
+      <label for="shop-search-input" class="sr-only">Search demo products</label>
+      <svg class="ml-4 size-5 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7"/><path d="m16 16 4.5 4.5" stroke-linecap="round"/></svg>
+      <input id="shop-search-input" name="q" value="{{ request.GET.q|default:'' }}" type="search" placeholder="Search headphones, watches, laptops..." autocomplete="off" class="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-foreground outline-none placeholder:text-muted/80" />
+      <button type="submit" class="mr-1 hidden h-9 rounded-lg bg-primary px-5 text-xs font-bold text-on-primary transition hover:bg-primary-hover sm:block">Search</button>
+    </form>
+    <div class="order-2 flex items-center gap-1.5 sm:gap-3 lg:order-none">
+      {% include 'components/theme_toggle.html' %}
+      {% include 'components/navigation/account_menu.html' %}
+      <a href="{% url 'shopping:wishlist' %}" data-view-favorites class="relative inline-flex size-10 items-center justify-center rounded-xl text-foreground transition hover:bg-surface-soft hover:text-primary" aria-label="Show saved favorites" title="Favorites (demo)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-[21px]" aria-hidden="true"><path d="M20.8 4.9a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.3a5.5 5.5 0 0 0 0-7.8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-favorites-count hidden class="absolute -right-1 -top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-on-primary">0</span>
+      </a>
+      <button type="button" data-open-bag aria-controls="cart-drawer" aria-haspopup="dialog" aria-expanded="false" class="inline-flex h-10 items-center gap-2 rounded-xl border border-line px-2.5 text-foreground transition hover:border-primary hover:text-primary sm:px-3.5" aria-label="Open shopping bag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-[20px]" aria-hidden="true"><path d="M4.5 8h15l-1.1 12H5.6L4.5 8Z" stroke-linejoin="round"/><path d="M9 9V6a3 3 0 0 1 6 0v3" stroke-linecap="round"/></svg>
+        <span class="hidden text-xs font-semibold sm:inline">Cart</span>
+        <span data-bag-count class="inline-flex min-w-5 items-center justify-center rounded-md bg-primary px-1.5 py-0.5 text-[11px] font-bold text-on-primary">0</span>
+      </button>
+    </div>
+  </div>
+  <div class="border-t border-line/80">
+    <nav aria-label="Shop categories" class="mx-auto flex max-w-7xl items-center justify-between gap-6 overflow-x-auto px-4 py-3 scrollbar-none sm:px-6 xl:px-8">
+      <div class="flex shrink-0 items-center gap-6 text-xs font-semibold text-muted sm:gap-8 sm:text-[13px]">
+        <a class="whitespace-nowrap font-bold text-primary hover:underline" href="{% url 'catalog:marketplace_list' %}">Marketplace</a>
+        <a class="whitespace-nowrap text-foreground hover:text-primary" href="{% url 'catalog:categories' %}">☷ <span class="ml-1">All categories</span></a>
+        <a href="{% url 'catalog:category_detail' 'audio' %}" class="whitespace-nowrap transition hover:text-primary">Audio</a>
+        <a href="{% url 'catalog:category_detail' 'wearables' %}" class="whitespace-nowrap transition hover:text-primary">Wearables</a>
+        <a href="{% url 'catalog:category_detail' 'computing' %}" class="whitespace-nowrap transition hover:text-primary">Computing</a>
+        <a href="{% url 'catalog:category_detail' 'gaming' %}" class="whitespace-nowrap transition hover:text-primary">Gaming</a>
+        <a href="{% url 'catalog:category_detail' 'lifestyle' %}" class="whitespace-nowrap transition hover:text-primary">Lifestyle</a>
+      </div>
+      <div class="hidden shrink-0 items-center gap-5 xl:flex"><a class="text-xs font-bold text-secondary hover:underline" href="{% url 'catalog:stores' %}">Explore demo stores →</a><a class="text-xs font-bold text-primary hover:underline" href="{% url 'vendors:dashboard' %}">Sell on Nexora</a></div>
+    </nav>
+  </div>
+</header>

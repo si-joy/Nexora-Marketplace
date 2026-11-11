@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" role="img" aria-label="Controller illustration">
+    <defs>
+      <linearGradient id="metal" x1=".12" y1="0" x2=".88" y2="1"><stop stop-color="#f8fbff"/><stop offset=".33" stop-color="#cfd9ed"/><stop offset=".7" stop-color="#71829e"/><stop offset="1" stop-color="#e8effc"/></linearGradient>
+      <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#455778"/><stop offset=".48" stop-color="#1c2945"/><stop offset="1" stop-color="#0a142a"/></linearGradient>
+      <linearGradient id="blue" x1=".12" y1="0" x2=".8" y2="1"><stop stop-color="#99c8ff"/><stop offset=".38" stop-color="#527bff"/><stop offset=".95" stop-color="#2433a5"/></linearGradient>
+      <linearGradient id="peach" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ffdec2"/><stop offset=".6" stop-color="#f69c7e"/><stop offset="1" stop-color="#b66673"/></linearGradient>
+      <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9bf4db"/><stop offset=".5" stop-color="#42c1ad"/><stop offset="1" stop-color="#126d88"/></linearGradient>
+      <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#191e4d"/><stop offset=".45" stop-color="#345bb4"/><stop offset="1" stop-color="#8fdce9"/></linearGradient>
+      <radialGradient id="lens"><stop stop-color="#4cb8d3"/><stop offset=".32" stop-color="#193d67"/><stop offset=".55" stop-color="#0a1123"/><stop offset=".8" stop-color="#5b6886"/><stop offset="1" stop-color="#0c1427"/></radialGradient>
+      <filter id="shadow" x="-35%" y="-40%" width="170%" height="200%"><feDropShadow dx="0" dy="14" stdDeviation="10" flood-color="#142849" flood-opacity=".20"/></filter>
+      <filter id="soft" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#091627" flood-opacity=".18"/></filter>
+    </defs>
+    <g filter="url(#shadow)" transform="rotate(-7 180 150)">
+  <path d="M91 101c-24-5-37 8-50 44l-21 68c-8 27 9 44 29 40 12-2 22-10 35-23l30-25h132l29 25c13 13 23 21 35 23 20 4 37-13 29-40l-21-68c-13-36-26-49-50-44-42 8-56 15-88 15s-46-7-89-15Z" fill="url(#metal)" stroke="#6e829e" stroke-width="5"/>
+  <path d="M93 118c-25-2-32 10-43 43l-17 54c-4 15 3 23 12 21 9-2 25-21 43-36h184c18 15 34 34 43 36 9 2 16-6 12-21l-17-54c-11-33-18-45-43-43-34 7-57 17-87 17s-53-10-87-17Z" fill="#e4ebf7"/>
+  <path d="M102 143v47M78 166h48" stroke="#263953" stroke-width="13" stroke-linecap="round"/>
+  <circle cx="255" cy="156" r="11" fill="#748bea"/><circle cx="281" cy="176" r="11" fill="#51b0ad"/><circle cx="255" cy="199" r="11" fill="#f5b262"/><circle cx="229" cy="176" r="11" fill="#ec7e9d"/>
+  <circle cx="142" cy="208" r="19" fill="#172b47" stroke="#93a4bc" stroke-width="4"/><circle cx="215" cy="208" r="19" fill="#172b47" stroke="#93a4bc" stroke-width="4"/>
+  <path d="M168 163h24" stroke="#99a6bb" stroke-width="7" stroke-linecap="round"/>
+</g>
+    </svg>
