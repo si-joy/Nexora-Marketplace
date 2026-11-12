@@ -104,21 +104,6 @@ class ProductForm(forms.Form):
             specs[key] = value
         return specs
 
-    def clean(self):
-        cleaned = super().clean()
-        brand = cleaned.get("brand")
-        new_name = (cleaned.get("new_brand_name") or "").strip()
-        if brand and new_name:
-            self.add_error("new_brand_name", "Select an existing brand OR type a new name, not both.")
-        if new_name and not any(character.isalnum() for character in new_name):
-            self.add_error("new_brand_name", "Enter a recognizable brand name.")
-
-        regular = cleaned.get("price_bdt")
-        sale = cleaned.get("sale_price_bdt")
-        if regular is not None and sale is not None and sale >= regular:
-            self.add_error("sale_price_bdt", "Sale price must be lower than the regular price.")
-        return cleaned
-
     def clean_sku(self):
         sku = self.cleaned_data["sku"].strip().upper()
         variants = ProductVariant.objects.filter(sku__iexact=sku)
@@ -153,6 +138,17 @@ class ProductForm(forms.Form):
 
     def clean(self):
         cleaned = super().clean()
+        brand = cleaned.get("brand")
+        new_name = (cleaned.get("new_brand_name") or "").strip()
+        if brand and new_name:
+            self.add_error("new_brand_name", "Select an existing brand OR type a new name, not both.")
+        if new_name and not any(character.isalnum() for character in new_name):
+            self.add_error("new_brand_name", "Enter a recognizable brand name.")
+
+        regular = cleaned.get("price_bdt")
+        sale = cleaned.get("sale_price_bdt")
+        if regular is not None and sale is not None and sale >= regular:
+            self.add_error("sale_price_bdt", "Sale price must be lower than the regular price.")
         images = []
         image_slots = {}
 
