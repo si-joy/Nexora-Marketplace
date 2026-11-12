@@ -133,3 +133,33 @@ def test_seller_brand_editor_is_compact_and_toggles_on_validation_error(
     assert response.status_code == 200
     assert 'aria-expanded="true"' in response.content.decode()
     assert 'id="seller-new-brand" data-brand-new hidden' not in response.content.decode()
+
+
+
+@pytest.mark.django_db
+def test_catalog_product_image_wrappers_use_full_cover(client, approved_seller, category):
+    seller, _, _ = approved_seller
+    values = cleaned(category)
+    product = create_product(seller=seller, cleaned=values)
+    product.status = product.Status.PUBLISHED
+    product.save(update_fields=["status"])
+
+    from django.template.loader import get_template
+    from pathlib import Path
+
+    snippets = {
+        "catalog/public/product_tile.html": "absolute inset-0 h-full w-full object-cover object-center",
+        "catalog/public/marketplace_detail.html": "absolute inset-0 h-full w-full object-cover object-center",
+        "catalog/seller/product_form.html": "absolute inset-0 h-full w-full object-cover object-center",
+        "components/cards/product_preview.html": "absolute inset-0 h-full w-full object-cover object-center",
+        "pages/categories.html": "absolute inset-0 h-full w-full object-cover object-center",
+        "pages/category_detail.html": "absolute inset-0 h-full w-full object-cover object-center",
+        "pages/home.html": "absolute inset-0 h-full w-full object-cover object-center",
+    }
+    for template_name, snippet in snippets.items():
+        source = Path(get_template(template_name).origin.name).read_text(encoding="utf-8")
+        assert snippet in source, template_name
+
+    page = client.get(reverse("catalog:marketplace_list"))
+    assert page.status_code == 200
+    assert 'object-cover object-center' in page.content.decode()
