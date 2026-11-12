@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load static %}
 {% block title %}{% if editing %}Edit product{% else %}New product{% endif %} | Nexora Seller Center{% endblock %}
 {% block content %}
 <section class="mx-auto max-w-5xl px-4 pb-20 pt-10 sm:px-6 xl:px-8">
@@ -87,3 +87,5 @@
   </div>
 </section>
 {% endblock %}
+
+{% block extra_js %}<script defer src="{% static 'js/seller-gallery.js' %}"></script>{% endblock %}
