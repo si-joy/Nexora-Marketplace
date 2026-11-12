@@ -18,16 +18,20 @@ def test_shared_footer_and_cart_copy_is_accurate(client):
     html = response.content.decode()
     assert "Checkout not yet live" in html
     assert "Approved seller listings" in html
-    assert "Demo shopping bag" in html
+    assert "Signed-in shoppers can save demo and approved marketplace items" in html
+    assert "Signed-out visitors cannot access saved items" in html
     assert "Inventory, live cart, checkout and payments are not implemented yet" not in html
 
 
-def test_demo_wishlist_explains_local_storage(client):
+def test_wishlist_explains_account_persistence(client):
     response = client.get(reverse("shopping:wishlist"))
     assert response.status_code == 200
     html = response.content.decode()
-    assert "Demo wishlist saved in this browser" in html
+    assert "Saved to your Nexora account" in html
+    assert "Demo wishlist saved in this browser" not in html
     assert 'id="wishlist-grid"' in html
+    assert 'id="marketplace-wishlist-grid"' in html
+    assert 'data-saved-get=' in html
 
 
 @pytest.mark.django_db

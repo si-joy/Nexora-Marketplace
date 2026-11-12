@@ -85,6 +85,8 @@ class Product(models.Model):
     slug = models.SlugField(unique=True, max_length=225)
     short_description = models.CharField(max_length=240, blank=True)
     description = models.TextField(blank=True)
+    highlights = models.TextField(blank=True, help_text="Seller-defined product highlights, one per line.")
+    specifications = models.JSONField(default=dict, blank=True, help_text="Seller-defined technical specifications.")
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.DRAFT, db_index=True)
     moderation_note = models.TextField(blank=True)
     reviewed_by = models.ForeignKey(
@@ -105,6 +107,14 @@ class Product(models.Model):
     @property
     def primary_image(self):
         return next(iter(self.images.all()), None)
+
+    @property
+    def default_sellable_variant(self):
+        """Find the active default SKU from prefetched product variants."""
+        return next(
+            (variant for variant in self.variants.all() if variant.is_default and variant.is_active),
+            None,
+        )
 
     @property
     def bdt_price(self):

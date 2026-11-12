@@ -1,150 +1,129 @@
 {% extends 'base.html' %}
 {% block title %}{{ product.name }} | Nexora Marketplace{% endblock %}
 {% block content %}
-<section class="mx-auto w-full max-w-[1200px] px-4 pb-14 pt-6 sm:px-6 sm:pb-20 sm:pt-8 xl:px-8">
-  <nav aria-label="Breadcrumb" class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-muted">
-    <a href="{% url 'catalog:marketplace_list' %}" class="transition-colors hover:text-primary">Marketplace</a>
-    <span aria-hidden="true">/</span>
-    <span>{{ product.category.name }}</span>
-    <span aria-hidden="true">/</span>
-    <span aria-current="page" class="min-w-0 max-w-[16rem] truncate font-semibold text-foreground sm:max-w-[28rem]">{{ product.name }}</span>
+<div class="mx-auto max-w-7xl px-4 pb-14 pt-6 sm:px-6 sm:pt-8 xl:px-8">
+  <nav class="mb-6 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted" aria-label="Breadcrumb">
+    <a href="{% url 'core:home' %}" class="hover:text-primary">Home</a><span aria-hidden="true">/</span>
+    <a href="{% url 'catalog:marketplace_list' %}" class="hover:text-primary">Marketplace</a><span aria-hidden="true">/</span>
+    <span aria-current="page" class="text-foreground">{{ product.name }}</span>
   </nav>
 
-  <section data-real-product class="mt-6 grid min-w-0 items-start gap-8 lg:mt-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)] lg:gap-10 xl:gap-12" aria-label="Product overview">
-    <div data-product-gallery class="marketplace-detail-gallery min-w-0">
-      <div data-gallery-stage class="product-gallery-stage product-gallery-stage--photo w-full">
+  <section data-real-product class="mt-6 grid min-w-0 items-start gap-9 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,.92fr)] lg:gap-12 xl:gap-16" aria-label="Product details">
+    <div data-product-gallery class="marketplace-detail-gallery min-w-0" aria-label="Seller product gallery">
+      <div data-gallery-stage tabindex="0" class="product-gallery-stage product-gallery-stage--photo w-full" aria-label="Product photos, use arrow keys to navigate">
         {% if gallery %}
-          <img data-gallery-main-image src="{{ gallery.0.image.url }}" alt="{{ gallery.0.alt_text|default:product.name }}" width="720" height="600" fetchpriority="high" class="h-full w-full object-contain">
+          <img data-gallery-main-image src="{{ gallery.0.image.url }}" alt="{{ gallery.0.alt_text|default:product.name }}" width="720" height="720" fetchpriority="high" class="h-full w-full object-contain">
           {% if gallery|length > 1 %}
-            <button type="button" data-gallery-nav="prev" class="gallery-nav gallery-nav--prev" aria-label="Previous product image">‹</button>
-            <button type="button" data-gallery-nav="next" class="gallery-nav gallery-nav--next" aria-label="Next product image">›</button>
+          <button type="button" data-gallery-nav="prev" class="gallery-nav gallery-nav--prev" aria-label="Previous product image">‹</button>
+          <button type="button" data-gallery-nav="next" class="gallery-nav gallery-nav--next" aria-label="Next product image">›</button>
           {% endif %}
         {% else %}
-          <p class="text-sm font-medium text-muted">Product image unavailable</p>
+          <p class="text-sm text-muted">No images uploaded</p>
         {% endif %}
       </div>
-
       {% if gallery %}
-        <div class="mt-3 grid grid-cols-5 gap-2 sm:mt-4 sm:gap-3" aria-label="Choose product image">
-          {% for picture in gallery %}
-            <button type="button" data-gallery-thumb data-index="{{ forloop.counter0 }}" data-src="{{ picture.image.url }}" data-alt="{{ picture.alt_text|default:product.name }}" class="product-gallery-thumb {% if forloop.first %}is-active{% endif %}" aria-label="View image {{ forloop.counter }} of {{ gallery|length }}" {% if forloop.first %}aria-current="true"{% endif %}>
-              <span class="product-gallery-thumb__photo"><img src="{{ picture.image.url }}" loading="lazy" alt="" width="110" height="110" class="h-full w-full object-cover"></span>
-            </button>
-          {% endfor %}
-        </div>
-        <p class="mt-3 text-xs text-muted">{{ gallery|length }} image{{ gallery|length|pluralize }} · Click any thumbnail to switch</p>
+      <div class="mt-4 flex items-center justify-between gap-3">
+        <p class="text-xs font-bold text-foreground" data-gallery-title>Product image 1</p>
+        <p class="text-xs font-semibold text-muted" data-gallery-position>01 / {{ gallery|length|stringformat:"02d" }}</p>
+      </div>
+      <div class="mt-4 grid grid-cols-5 gap-2 sm:gap-3" role="group" aria-label="Select product image">
+        {% for picture in gallery %}
+        <button type="button" data-gallery-thumb data-index="{{ forloop.counter0 }}" data-src="{{ picture.image.url }}" data-alt="{{ picture.alt_text|default:product.name }}" data-label="Product image {{ forloop.counter }}"
+          class="product-gallery-thumb {% if forloop.first %}is-active{% endif %}" aria-label="View image {{ forloop.counter }} of {{ gallery|length }}" {% if forloop.first %}aria-current="true"{% endif %}>
+          <span class="product-gallery-thumb__photo"><img src="{{ picture.image.url }}" alt="" loading="lazy" width="110" height="110" class="h-full w-full object-contain"></span>
+        </button>
+        {% endfor %}
+      </div>
       {% endif %}
+      <p class="mt-3 text-xs leading-5 text-muted">Photos supplied by the seller. Select a thumbnail, use arrows, or swipe to browse.</p>
     </div>
 
     <div class="min-w-0">
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs font-extrabold uppercase tracking-[.12em] text-secondary">{{ product.category.name }}</span>
-        {% if product.brand %}<span class="rounded-full border border-line px-2.5 py-1 text-xs font-semibold text-muted">{{ product.brand.name }}</span>{% endif %}
-        <span class="rounded-full bg-surface-soft px-2.5 py-1 text-xs font-semibold text-success">Approved seller</span>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <span class="section-overline">{{ product.category.name }}</span>
+        {% if product.brand %}<span class="rounded-full border border-line px-3 py-1.5 text-[11px] font-bold text-muted">{{ product.brand.name }}</span>{% endif %}
+        <span class="rounded-full bg-surface-soft px-3 py-1.5 text-[11px] font-bold text-success">Approved seller</span>
       </div>
       <div class="mt-3 flex items-start justify-between gap-3">
-        <button type="button" data-marketplace-favorite data-product-id="{{ product.pk }}" data-product-name="{{ product.name }}"
-          aria-label="Save {{ product.name }} to wishlist" aria-pressed="false" title="Save to wishlist"
-          class="ml-auto flex size-10 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-xl text-foreground transition hover:border-primary hover:text-primary">
+        <h1 class="min-w-0 text-[2rem] font-black leading-[1.15] tracking-tight text-foreground sm:text-[2.7rem] lg:text-[2.9rem]">{{ product.name }}</h1>
+        <button type="button" data-marketplace-favorite data-product-id="{{ product.pk }}" data-product-name="{{ product.name }}" aria-label="Save {{ product.name }} to wishlist" aria-pressed="false" title="Save to wishlist"
+          class="flex size-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-xl text-foreground hover:border-primary hover:text-primary">
           <span data-heart-icon aria-hidden="true">♡</span>
         </button>
       </div>
-      <h1 class="mt-3 text-[1.8rem] font-black leading-[1.18] tracking-tight text-foreground sm:text-[2.25rem] lg:text-[2.5rem]">{{ product.name }}</h1>
-      {% if product.short_description %}
-        <p class="mt-3 text-sm leading-7 text-muted sm:text-[15px]">{{ product.short_description }}</p>
-      {% endif %}
+      {% if product.short_description %}<p class="mt-3 text-sm leading-7 text-muted sm:text-base">{{ product.short_description }}</p>{% endif %}
 
-      <div class="mt-6 rounded-[22px] border border-line bg-surface p-5 sm:p-6">
-        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <div class="min-w-0">
-            <p class="text-[11px] font-bold uppercase tracking-[.12em] text-muted">Price</p>
-            <p class="mt-1 text-3xl font-black tracking-tight text-foreground sm:text-[2.15rem]">
-              {% if product.bdt_price != None %}৳{{ product.bdt_price|floatformat:2 }}{% else %}Unavailable{% endif %}
-            </p>
-          </div>
-          {% with variant=product.shop_variant %}
-            {% if variant and variant.available_stock > 0 %}
-              <span class="rounded-full bg-surface-soft px-3 py-2 text-xs font-bold text-success">● {{ variant.available_stock }} in stock</span>
-            {% else %}
-              <span class="rounded-full bg-surface-soft px-3 py-2 text-xs font-bold text-danger">● Out of stock</span>
-            {% endif %}
-          {% endwith %}
-        </div>
-        <div class="mt-5">
-          {% with variant=product.shop_variant %}
-            {% if variant and variant.available_stock > 0 and product.bdt_price != None %}
-              <button type="button" data-add-real-bag data-variant-id="{{ variant.pk }}" class="w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-on-primary transition hover:bg-primary-hover">Add to bag</button>
-            {% else %}
-              <button type="button" disabled class="w-full cursor-not-allowed rounded-xl bg-surface-soft px-5 py-3.5 text-sm font-bold text-muted">Currently unavailable</button>
-            {% endif %}
-          {% endwith %}
-
-        </div>
-        <p class="mt-3 text-xs leading-5 text-muted">Sign in to save real products to your account. Adding to the bag does not reserve stock; checkout and payment remain unavailable.</p>
-      </div>
-
-      <div class="mt-4 flex items-center justify-between gap-3 rounded-[18px] border border-line bg-surface px-5 py-4">
-        <div class="min-w-0">
-          <p class="text-xs text-muted">Sold by</p>
-          <p class="mt-1 truncate text-sm font-extrabold text-foreground">{{ product.store.name }}</p>
-        </div>
-        <a href="{% url 'catalog:marketplace_store' product.store.slug %}" class="shrink-0 rounded-lg bg-surface-soft px-3.5 py-2.5 text-xs font-bold text-primary transition hover:bg-line">Visit store →</a>
+      <div class="mt-6 flex flex-wrap items-end gap-3 border-b border-line pb-6">
+        <strong class="text-3xl font-black tracking-tight text-foreground sm:text-[2.5rem]">{% if product.bdt_price != None %}৳{{ product.bdt_price|floatformat:2 }}{% else %}Price unavailable{% endif %}</strong>
+        {% with variant=product.shop_variant %}
+          {% if variant and variant.available_stock > 0 %}
+            <span class="mb-1 ml-auto rounded-full bg-surface-soft px-3 py-1.5 text-[11px] font-bold text-success">{{ variant.available_stock }} available</span>
+          {% else %}
+            <span class="mb-1 ml-auto rounded-full bg-surface-soft px-3 py-1.5 text-[11px] font-bold text-danger">Out of stock</span>
+          {% endif %}
+        {% endwith %}
       </div>
 
       {% if highlights %}
-        <div class="mt-5 border-t border-line pt-5">
-          <h2 class="text-sm font-extrabold text-foreground">Key highlights</h2>
-          <ul class="mt-3 grid gap-2">
-            {% for item in highlights|slice:':3' %}
-              <li class="flex min-w-0 items-start gap-2.5 text-sm leading-6 text-muted">
-                <span class="shrink-0 font-bold text-secondary" aria-hidden="true">✓</span>
-                <span>{{ item|truncatechars:115 }}</span>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
+      <div class="mt-6">
+        <h2 class="text-sm font-extrabold text-foreground">Highlights</h2>
+        <ul class="mt-4 space-y-3">
+          {% for item in highlights|slice:":6" %}
+          <li class="flex items-start gap-3 text-sm leading-6 text-muted">
+            <span class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-soft text-xs font-black text-secondary" aria-hidden="true">✓</span>
+            <span>{{ item }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
       {% endif %}
-    </div>
-  </section>
 
-  <section class="mt-10 border-t border-line pt-9 sm:mt-12 sm:pt-10" aria-labelledby="product-information-heading">
-    <p class="section-overline">Product information</p>
-    <h2 id="product-information-heading" class="mt-2 text-2xl font-black tracking-tight text-foreground sm:text-[1.85rem]">Details & specifications</h2>
-    <div class="mt-5 grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(290px,1fr)] lg:gap-6">
-      <article class="min-w-0 rounded-[22px] border border-line bg-surface p-5 sm:p-7">
-        <h3 class="text-base font-extrabold text-foreground">Description</h3>
-        {% if product.description %}
-          {% if product.description|length > 320 %}
-            <div class="mt-4 whitespace-pre-line break-words text-sm leading-7 text-muted">{{ product.description|truncatechars:320 }}</div>
-            <details class="mt-4 border-t border-line pt-4">
-              <summary class="cursor-pointer text-sm font-bold text-primary hover:underline">Read full description</summary>
-              <div class="mt-4 whitespace-pre-line break-words text-sm leading-7 text-muted">{{ product.description }}</div>
-            </details>
+      <div class="mt-7 rounded-2xl border border-line bg-surface p-4 sm:p-5">
+        {% with variant=product.shop_variant %}
+          {% if variant and variant.available_stock > 0 and product.bdt_price != None %}
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div><span class="block text-xs font-extrabold text-foreground">Quantity</span><span class="mt-1 block text-xs text-muted">Choose up to available stock</span></div>
+            <div data-real-qty data-stock-max="{{ variant.available_stock }}" class="inline-flex items-center rounded-xl border border-line bg-surface-soft">
+              <button type="button" data-real-qty-minus class="flex size-11 items-center justify-center text-xl font-bold text-foreground hover:bg-line" aria-label="Decrease quantity">−</button>
+              <output data-real-qty-value class="min-w-8 text-center text-sm font-black text-foreground" aria-label="Selected quantity">1</output>
+              <button type="button" data-real-qty-plus class="flex size-11 items-center justify-center text-xl font-bold text-foreground hover:bg-line" aria-label="Increase quantity">+</button>
+            </div>
+          </div>
+          <button type="button" data-add-real-bag data-detail-quantity data-variant-id="{{ variant.pk }}" class="mt-4 flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-on-primary hover:bg-primary-hover">Add to bag</button>
           {% else %}
-            <div class="mt-4 whitespace-pre-line break-words text-sm leading-7 text-muted">{{ product.description }}</div>
+          <button type="button" disabled class="w-full cursor-not-allowed rounded-xl bg-surface-soft px-5 py-3.5 text-sm font-bold text-muted">Currently unavailable</button>
           {% endif %}
-        {% else %}
-          <p class="mt-4 text-sm leading-7 text-muted">The seller has not provided a description yet.</p>
-        {% endif %}
-      </article>
-
-      <aside class="min-w-0 space-y-5">
-        <section class="rounded-[22px] border border-line bg-surface p-5 sm:p-6">
-          <h3 class="text-base font-extrabold text-foreground">Specifications</h3>
-          <dl class="mt-3 divide-y divide-line text-sm">
-            <div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">Category</dt><dd class="min-w-0 break-words text-right font-semibold text-foreground">{{ product.category.name }}</dd></div>
-            {% if product.brand %}<div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">Brand</dt><dd class="min-w-0 break-words text-right font-semibold text-foreground">{{ product.brand.name }}</dd></div>{% endif %}
-            {% with variant=product.shop_variant %}{% if variant %}<div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">SKU</dt><dd class="min-w-0 break-all text-right font-semibold text-foreground">{{ variant.sku }}</dd></div>{% endif %}{% endwith %}
-            <div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">Images</dt><dd class="font-semibold text-foreground">{{ gallery|length }}</dd></div>
-            <div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">Store</dt><dd class="min-w-0 break-words text-right font-semibold text-foreground">{{ product.store.name }}</dd></div>
-          </dl>
-        </section>
-        <section class="rounded-[18px] bg-surface-soft p-5 sm:p-6">
-          <h3 class="text-sm font-extrabold text-foreground">Before you order</h3>
-          <p class="mt-2 text-sm leading-7 text-muted">Your shopping bag is not an order or stock reservation. Checkout and payments are planned for a later phase.</p>
-        </section>
-      </aside>
+        {% endwith %}
+        <p class="mt-3 text-xs leading-5 text-muted">Sign in to save your bag. Adding items does not reserve stock. Checkout and payment are not enabled yet.</p>
+      </div>
+      <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+        <span class="font-medium text-muted">Sold by</span>
+        <a href="{% url 'catalog:marketplace_store' product.store.slug %}" class="font-extrabold text-primary hover:underline">{{ product.store.name }} →</a>
+      </div>
     </div>
   </section>
-</section>
+
+  <section class="mt-12 border-t border-line pt-8 sm:mt-14 sm:pt-10" aria-labelledby="real-product-information">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,.65fr)] lg:gap-12">
+      <div>
+        <p class="section-overline">PRODUCT INFORMATION</p>
+        <h2 id="real-product-information" class="mt-2 text-2xl font-black tracking-tight text-foreground">Details & specifications</h2>
+        {% if product.description %}
+        <div class="mt-4 whitespace-pre-line break-words text-sm leading-8 text-muted">{{ product.description }}</div>
+        {% else %}
+        <p class="mt-4 text-sm leading-7 text-muted">The seller has not added a full description yet.</p>
+        {% endif %}
+      </div>
+      <dl class="divide-y divide-line rounded-xl border border-line px-5">
+        <div class="flex justify-between gap-4 py-3.5 text-sm"><dt class="text-muted">Category</dt><dd class="text-right font-bold text-foreground">{{ product.category.name }}</dd></div>
+        {% if product.brand %}<div class="flex justify-between gap-4 py-3.5 text-sm"><dt class="text-muted">Brand</dt><dd class="text-right font-bold text-foreground">{{ product.brand.name }}</dd></div>{% endif %}
+        {% with variant=product.shop_variant %}{% if variant %}<div class="flex justify-between gap-4 py-3.5 text-sm"><dt class="text-muted">SKU</dt><dd class="break-all text-right font-bold text-foreground">{{ variant.sku }}</dd></div>{% endif %}{% endwith %}
+        {% for key, value in specifications %}
+          <div class="flex justify-between gap-4 py-3.5 text-sm"><dt class="min-w-0 break-words text-muted">{{ key }}</dt><dd class="min-w-0 break-words text-right font-bold text-foreground">{{ value }}</dd></div>
+        {% endfor %}
+        <div class="flex justify-between gap-4 py-3.5 text-sm"><dt class="text-muted">Store</dt><dd class="text-right font-bold text-foreground">{{ product.store.name }}</dd></div>
+      </dl>
+    </div>
+  </section>
+</div>
 {% endblock %}

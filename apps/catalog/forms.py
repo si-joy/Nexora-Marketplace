@@ -14,6 +14,16 @@ class ProductForm(forms.Form):
     brand = forms.ModelChoiceField(queryset=Brand.objects.none(), required=False)
     short_description = forms.CharField(max_length=240, required=False, widget=forms.Textarea(attrs={"rows": 2}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 6}))
+    highlights = forms.CharField(
+        required=False, max_length=1400, label="Key highlights (one per line)",
+        widget=forms.Textarea(attrs={"rows": 4, "placeholder": "Wireless Bluetooth\n40-hour battery\nFast charging"}),
+        help_text="Up to 6 short highlights, each on a separate line.",
+    )
+    specifications_text = forms.CharField(
+        required=False, max_length=2400, label="Specifications (one key: value per line)",
+        widget=forms.Textarea(attrs={"rows": 5, "placeholder": "Connectivity: Bluetooth\nBattery: 40 hours\nWarranty: 1 year"}),
+        help_text="Up to 12 specifications, formatted as Name: Value.",
+    )
     sku = forms.CharField(max_length=80)
     price_bdt = forms.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.01"))
     initial_stock = forms.IntegerField(required=False, min_value=0, max_value=100_000, label="Initial stock", help_text="New products only. Leave blank for zero; edit stock separately after saving.")
@@ -33,6 +43,8 @@ class ProductForm(forms.Form):
             field.widget.attrs["class"] = input_class
             if name.startswith("image_"):
                 field.widget.attrs["accept"] = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                field.widget.attrs["class"] = "absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                field.widget.attrs["aria-label"] = f"Choose or replace gallery image {name.split('_')[-1]}"
         self.fields["category"].queryset = Category.objects.filter(is_active=True).order_by("name")
         self.fields["brand"].queryset = Brand.objects.filter(is_active=True).order_by("name")
         if product is not None and not self.is_bound:
@@ -43,9 +55,34 @@ class ProductForm(forms.Form):
                 "brand": product.brand_id,
                 "short_description": product.short_description,
                 "description": product.description,
+                "highlights": product.highlights,
+                "specifications_text": "\n".join(f"{key}: {value}" for key, value in (product.specifications or {}).items()),
                 "sku": variant.sku if variant else "",
                 "price_bdt": product.bdt_price,
             }
+
+    def clean_highlights(self):
+        raw = self.cleaned_data.get("highlights", "")
+        lines = [line.strip().lstrip("•- ").strip() for line in raw.splitlines() if line.strip()]
+        if len(lines) > 6 or any(len(line) > 180 for line in lines):
+            raise forms.ValidationError("Enter at most 6 highlights, each up to 180 characters.")
+        return "\n".join(lines)
+
+    def clean_specifications_text(self):
+        raw = self.cleaned_data.get("specifications_text", "")
+        lines = [line.strip() for line in raw.splitlines() if line.strip()]
+        if len(lines) > 12:
+            raise forms.ValidationError("Enter no more than 12 specifications.")
+        specs = {}
+        for line in lines:
+            key, sep, value = line.partition(":")
+            key, value = key.strip(), value.strip()
+            if not sep or not key or not value or len(key) > 60 or len(value) > 180:
+                raise forms.ValidationError("Each specification must be Name: Value (name ≤60, value ≤180 characters).")
+            if key.casefold() in (k.casefold() for k in specs):
+                raise forms.ValidationError("Specification names must be unique.")
+            specs[key] = value
+        return specs
 
     def clean_sku(self):
         sku = self.cleaned_data["sku"].strip().upper()
@@ -82,13 +119,37 @@ class ProductForm(forms.Form):
     def clean(self):
         cleaned = super().clean()
         images = []
-        for name in ("image", "image_1", "image_2", "image_3", "image_4", "image_5"):
+        image_slots = {}
+
+        # Slot indexes are stable between create and edit. A file selected for
+        # an existing slot replaces that photo; empty slots add a new photo.
+        for index in range(5):
+            name = f"image_{index + 1}"
             uploaded = cleaned.get(name)
             if uploaded:
                 cleaned[name] = self._clean_uploaded_image(uploaded)
+                image_slots[index] = cleaned[name]
                 images.append(cleaned[name])
-        existing_count = self.product.images.count() if self.product is not None else 0
-        if existing_count + len(images) > 5:
-            raise forms.ValidationError("A product can have at most 5 gallery images.")
+
+        legacy = cleaned.get("image")
+        if legacy:
+            cleaned["image"] = self._clean_uploaded_image(legacy)
+            images.append(cleaned["image"])
+
+        existing_slots = (
+            set(self.product.images.values_list("sort_order", flat=True))
+            if self.product is not None else set()
+        )
+        new_count = sum(1 for position in image_slots if position not in existing_slots)
+        if legacy:
+            new_count += 1
+        if len(existing_slots) + new_count > 5:
+            raise forms.ValidationError(
+                "The gallery has five slots. Replace an existing image instead of adding a sixth."
+            )
+
+        # Preserve old callers that inspect the images list, while the upload
+        # service uses image_slots to distinguish replacements from additions.
         cleaned["images"] = images
+        cleaned["image_slots"] = image_slots
         return cleaned
