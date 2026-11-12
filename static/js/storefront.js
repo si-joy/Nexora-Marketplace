@@ -23,16 +23,10 @@
   let toastTimeout;
   let closeTimeout;
 
-  function readIds(key) {
-    try {
-      const saved = JSON.parse(localStorage.getItem(key) || "[]");
-      return Array.isArray(saved)
-        ? saved.filter((id) => typeof id === "string" && catalog.has(id)).slice(0, MAX_CART_ITEMS)
-        : [];
-    } catch { return []; }
-  }
-  let favorites = new Set(readIds(FAV_KEY));
-  let cart = readIds(CART_KEY);
+  // No account data is read from localStorage. All saved items are account-owned.
+  let favorites = new Set();
+  let marketplaceFavorites = new Set();
+  let cart = [];
   let realCart = { authenticated: false, items: [], item_count: 0, subtotal: "0.00" };
   const realConfig = document.getElementById("real-cart-api");
   const realApi = {
@@ -43,10 +37,64 @@
     token: realConfig?.dataset.csrf,
     authenticated: realConfig?.dataset.authenticated === "true",
     login: realConfig?.dataset.login || "/account/login/",
+    savedGet: realConfig?.dataset.savedGet,
+    savedChange: realConfig?.dataset.savedChange,
   };
 
-  function save(key, values) {
-    try { localStorage.setItem(key, JSON.stringify(values)); } catch { /* Storage is optional. */ }
+  function loginForSavedItems() {
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `${realApi.login}?next=${next}`;
+  }
+  function applySavedState(state) {
+    if (!state?.authenticated) {
+      favorites = new Set();
+      marketplaceFavorites = new Set();
+      cart = [];
+    } else {
+      favorites = new Set((state.demo_favorites || []).filter((id) => catalog.has(id)));
+      marketplaceFavorites = new Set(state.marketplace_favorites || []);
+      cart = [];
+      for (const line of state.demo_cart || []) {
+        if (!catalog.has(line.product_id)) continue;
+        const count = Number(line.quantity);
+        if (!Number.isInteger(count) || count < 1 || count > MAX_PER_PRODUCT) continue;
+        for (let i = 0; i < count && cart.length < MAX_CART_ITEMS; i++) cart.push(line.product_id);
+      }
+    }
+    updateBadges();
+    updateHearts();
+    refreshWishlist();
+    renderCart();
+  }
+  async function refreshSavedItems() {
+    if (!realApi.authenticated) {
+      applySavedState({ authenticated: false });
+      return;
+    }
+    try {
+      const response = await fetch(realApi.savedGet, { credentials: "same-origin", cache: "no-store" });
+      if (!response.ok) throw new Error("Could not load saved items");
+      const result = await response.json();
+      applySavedState(result);
+    } catch (error) {
+      applySavedState({ authenticated: false });
+      notify("Unable to load your saved items. Please refresh.");
+    }
+  }
+  async function changeSavedItems(action, payload = {}) {
+    if (!realApi.authenticated) {
+      loginForSavedItems();
+      return null;
+    }
+    const response = await fetch(realApi.savedChange, {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": realApi.token || "" },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) throw new Error(data.error || "Unable to save your items.");
+    applySavedState(data);
+    return data;
   }
   function money(value) { return `৳${Number(value).toLocaleString("en-BD")}`; }
   function el(tag, className, content) {
@@ -65,8 +113,8 @@
   }
   function updateBadges() {
     document.querySelectorAll("[data-favorites-count]").forEach((badge) => {
-      badge.textContent = String(favorites.size);
-      badge.hidden = !favorites.size;
+      badge.textContent = String(favorites.size + marketplaceFavorites.size);
+      badge.hidden = !(favorites.size + marketplaceFavorites.size);
     });
     document.querySelectorAll("[data-bag-count]").forEach((badge) => {
       badge.textContent = String(cart.length + realCart.item_count);
@@ -86,62 +134,26 @@
   }
   function updateHearts() {
     document.querySelectorAll("[data-favorite-toggle]").forEach((button) => {
-      const active = favorites.has(button.dataset.itemId);
-      button.setAttribute("aria-pressed", String(active));
-      button.setAttribute("aria-label", `${active ? "Remove" : "Save"} ${button.dataset.itemName || "item"} ${active ? "from" : "to"} wishlist`);
-      if (!button.closest("[data-product]")) button.textContent = active ? "♥ Saved" : "♡ Save";
-    });
-  }
-  function refreshWishlist() {
-    const grid = document.getElementById("wishlist-grid");
-    if (!grid) return;
-    let visibleCount = 0;
-    grid.querySelectorAll("[data-product]").forEach((card) => {
-      const visible = favorites.has(card.dataset.productId);
-      card.hidden = !visible;
-      if (visible) visibleCount += 1;
-    });
-    grid.hidden = visibleCount === 0;
-    const empty = document.getElementById("wishlist-empty");
-    if (empty) empty.hidden = visibleCount !== 0;
-  }
-  function refreshHomeFilters() {
-    if (!filters.length) return;
-    let visibleCount = 0;
-    cards.forEach((card) => {
-      const visible = category === "all" || card.dataset.productCategory === category;
-      card.hidden = !visible;
-      if (visible) visibleCount += 1;
-    });
-    const results = document.getElementById("product-results");
-    if (results) results.textContent = `${visibleCount} product${visibleCount === 1 ? "" : "s"}`;
-    const empty = document.getElementById("products-empty");
-    if (empty) empty.hidden = visibleCount > 0;
-    filters.forEach((button) => {
-      const active = button.dataset.filter === category;
-      button.classList.toggle("is-active", active);
-      button.setAttribute("aria-pressed", String(active));
-    });
-  }
-  filters.forEach((button) => button.addEventListener("click", () => {
-    category = button.dataset.filter || "all";
-    refreshHomeFilters();
-  }));
-  document.querySelector("[data-clear-filters]")?.addEventListener("click", () => {
-    category = "all";
-    refreshHomeFilters();
-  });
-  document.querySelectorAll("[data-favorite-toggle]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const id = button.dataset.itemId;
       if (!catalog.has(id)) return;
-      if (favorites.has(id)) favorites.delete(id);
-      else favorites.add(id);
-      save(FAV_KEY, [...favorites]);
-      updateBadges();
-      updateHearts();
-      refreshWishlist();
-      notify(favorites.has(id) ? "Added to wishlist" : "Removed from wishlist");
+      button.disabled = true;
+      try {
+        const result = await changeSavedItems("demo_wishlist_toggle", { product_id: id });
+        if (result) notify(favorites.has(id) ? "Saved to your wishlist" : "Removed from wishlist");
+      } catch (error) { notify(error.message); }
+      finally { button.disabled = false; }
+    });
+  });
+  document.querySelectorAll("[data-marketplace-favorite]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = Number(button.dataset.productId);
+      button.disabled = true;
+      try {
+        const result = await changeSavedItems("marketplace_wishlist_toggle", { product_id: id });
+        if (result) notify(marketplaceFavorites.has(id) ? "Saved to your wishlist" : "Removed from wishlist");
+      } catch (error) { notify(error.message); }
+      finally { button.disabled = false; }
     });
   });
 
