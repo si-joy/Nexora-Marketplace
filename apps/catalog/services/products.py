@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.vendors.models import SellerProfile, Store
-from apps.catalog.models import Currency, Product, ProductImage, ProductVariant, ProductVariantPrice
+from apps.catalog.models import Brand, Currency, Product, ProductImage, ProductVariant, ProductVariantPrice
 
 
 def get_seller_store(user):
@@ -34,6 +34,40 @@ def _bdt():
     if not currency.is_active:
         raise ValidationError("BDT pricing is currently unavailable.")
     return currency
+
+
+def _resolve_brand(cleaned):
+    """Re-use an active catalog brand or safely create the seller's new name."""
+    selected = cleaned.get("brand")
+    name = (cleaned.get("new_brand_name") or "").strip()
+    if selected and name:
+        raise ValidationError("Choose an existing brand or enter a new brand name.")
+    if not name:
+        return selected
+    if len(name) > 120 or not any(char.isalnum() for char in name):
+        raise ValidationError("Enter a valid brand name (up to 120 characters).")
+
+    matching = Brand.objects.filter(name__iexact=name).first()
+    if matching:
+        if not matching.is_active:
+            raise ValidationError("This brand is unavailable. Contact support.")
+        return matching
+    root = slugify(name)[:120] or "brand"
+    slug = root
+    if Brand.objects.filter(slug=slug).exists():
+        slug = f"{root[:110]}-{uuid4().hex[:8]}"
+    return Brand.objects.create(name=name, slug=slug, is_active=True)
+
+
+def _prices(cleaned):
+    regular = cleaned["price_bdt"]
+    sale = cleaned.get("sale_price_bdt")
+    if sale is not None and (sale <= 0 or sale >= regular):
+        raise ValidationError("Sale price must be positive and lower than regular price.")
+    return {
+        "amount": sale if sale is not None else regular,
+        "compare_at_amount": regular if sale is not None else None,
+    }
 
 
 def _save_product_images(product, cleaned):
@@ -86,14 +120,14 @@ def create_product(*, seller, cleaned):
         name=cleaned["name"],
         slug=f"{slugify(cleaned['name'])[:195] or 'product'}-{uuid4().hex[:12]}",
         category=cleaned["category"],
-        brand=cleaned.get("brand"),
+        brand=_resolve_brand(cleaned),
         short_description=cleaned.get("short_description", ""),
         description=cleaned.get("description", ""),
         highlights=cleaned.get("highlights", ""),
         specifications=cleaned.get("specifications_text", {}),
     )
     variant = ProductVariant.objects.create(product=product, sku=cleaned["sku"].strip().upper(), is_default=True)
-    ProductVariantPrice.objects.create(variant=variant, currency=_bdt(), amount=cleaned["price_bdt"])
+    ProductVariantPrice.objects.create(variant=variant, currency=_bdt(), **_prices(cleaned))
     _save_product_images(product, cleaned)
     initial_stock = cleaned.get("initial_stock")
     if initial_stock is not None:
@@ -113,7 +147,7 @@ def update_product(*, seller, product_id, cleaned):
         raise ValidationError("Archived products cannot be edited.")
     product.name = cleaned["name"]
     product.category = cleaned["category"]
-    product.brand = cleaned.get("brand")
+    product.brand = _resolve_brand(cleaned)
     product.short_description = cleaned.get("short_description", "")
     product.description = cleaned.get("description", "")
     product.highlights = cleaned.get("highlights", "")
@@ -130,7 +164,7 @@ def update_product(*, seller, product_id, cleaned):
     variant.sku = cleaned["sku"].strip().upper()
     variant.save(update_fields=["sku"])
     ProductVariantPrice.objects.update_or_create(
-        variant=variant, currency=_bdt(), defaults={"amount": cleaned["price_bdt"]}
+        variant=variant, currency=_bdt(), defaults=_prices(cleaned)
     )
     _save_product_images(product, cleaned)
     return product
