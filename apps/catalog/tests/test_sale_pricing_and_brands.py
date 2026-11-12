@@ -102,3 +102,29 @@ def test_edit_form_prepopulates_sale_and_original(category, approved_seller):
     form = ProductForm(product=product)
     assert form.initial["price_bdt"] == Decimal("950.00")
     assert form.initial["sale_price_bdt"] == Decimal("650.00")
+
+
+@pytest.mark.django_db
+def test_seller_brand_editor_is_compact_and_toggles_on_validation_error(
+    client, approved_seller, category
+):
+    seller, _, _ = approved_seller
+    client.force_login(seller)
+    page = client.get(reverse("catalog:seller_product_create"))
+    assert page.status_code == 200
+    html = page.content.decode()
+    assert 'data-brand-editor' in html
+    assert 'data-brand-mode-toggle' in html
+    assert 'aria-expanded="false"' in html
+    assert 'id="seller-new-brand" data-brand-new hidden' in html
+    assert 'js/seller-brand.js' in html
+    assert 'rounded-xl border border-dashed border-line bg-surface-soft p-3' not in html
+
+    response = client.post(reverse("catalog:seller_product_create"), {
+        "name": "Brand test", "category": category.pk,
+        "new_brand_name": "New beauty", "price_bdt": "950.00",
+        "sale_price_bdt": "950.00", "sku": "BRAND-VALIDATION-101",
+    })
+    assert response.status_code == 200
+    assert 'aria-expanded="true"' in response.content.decode()
+    assert 'id="seller-new-brand" data-brand-new hidden' not in response.content.decode()
