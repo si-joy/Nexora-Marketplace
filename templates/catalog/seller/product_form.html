@@ -13,6 +13,8 @@
         {% include 'components/forms/field.html' with field=form.brand %}
         <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.short_description %}</div>
         <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.description %}</div>
+        <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.highlights %}</div>
+        <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.specifications_text %}</div>
         {% include 'components/forms/field.html' with field=form.sku %}
         {% include 'components/forms/field.html' with field=form.price_bdt %}
         {% if not editing %}
