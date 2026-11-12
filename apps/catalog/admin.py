@@ -82,7 +82,7 @@ class ProductVariantAdmin(ReadOnlyCatalogAdmin):
 
 @admin.register(ProductVariantPrice)
 class ProductVariantPriceAdmin(ReadOnlyCatalogAdmin):
-    list_display = ("variant", "currency", "amount")
+    list_display = ("variant", "currency", "amount", "compare_at_amount")
 
 
 @admin.register(ProductImage)
