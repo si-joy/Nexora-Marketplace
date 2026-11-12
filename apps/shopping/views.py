@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.cache import never_cache
 
 from apps.catalog.demo_data import DEMO_PRODUCTS
 from apps.catalog.orm_selectors import live_products
@@ -19,6 +20,7 @@ def cart(request):
     return HttpResponseRedirect(f"{reverse('catalog:shop')}?cart=open")
 
 
+@never_cache
 def wishlist(request):
     marketplace_favorites = []
     if request.user.is_authenticated and request.user.is_active:
@@ -55,6 +57,7 @@ def _auth_required(request):
     return request.user.is_authenticated and request.user.is_active
 
 
+@never_cache
 @require_GET
 def real_cart_get(request):
     return JsonResponse(cart_snapshot(request.user))
@@ -98,6 +101,7 @@ def real_cart_clear(request):
         return _error("; ".join(error.messages))
 
 
+@never_cache
 @require_GET
 def account_saved_get(request):
     return JsonResponse(saved_snapshot(request.user))
