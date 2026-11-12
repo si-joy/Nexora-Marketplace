@@ -1,1 +1,4 @@
-<div class="demo-note mt-7 flex items-start gap-3 rounded-xl border border-line bg-surface-soft px-4 py-3.5 text-xs leading-6 text-muted"><span class="text-lg" aria-hidden="true">ⓘ</span><p><strong class="text-foreground">Storefront preview:</strong> These are sample products, stores and prices. Cart and wishlist are saved only in this browser. Approved sellers can now manage real product drafts separately in Marketplace. Inventory, live cart, checkout and payments are not implemented yet.</p></div>
+<aside aria-label="Demo storefront notice" class="demo-note mt-7 flex items-start gap-3 rounded-xl border border-line bg-surface-soft px-4 py-3.5 text-xs leading-6 text-muted">
+  <span class="text-lg text-primary" aria-hidden="true">ⓘ</span>
+  <p><strong class="text-foreground">Demo collection:</strong> These sample products, prices and stores are for preview only. Their cart and wishlist are stored in this browser, and no orders or payments are processed. <a class="font-bold text-primary underline-offset-2 hover:underline" href="{% url 'catalog:marketplace_list' %}">Browse approved seller listings</a> for separately managed products.</p>
+</aside>
