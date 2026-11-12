@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Adjust stock | Nexora Seller Center{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-5xl px-4 pb-20 pt-9 sm:px-6 xl:px-8">
+  <a class="text-sm font-bold text-primary hover:underline" href="{% url 'inventory:list' %}">← Back to stock overview</a>
+  <div class="mt-6">
+    <p class="section-overline">SELLER CENTER / STOCK</p>
+    <h1 class="mt-2 break-words text-3xl font-black tracking-tight text-foreground sm:text-4xl">{{ variant.product.name }}</h1>
+    <p class="mt-2 break-all text-sm text-muted">SKU: {{ variant.sku }}</p>
+  </div>
+  <div class="mt-7 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,.85fr)]">
+    <div class="rounded-2xl border border-line bg-surface p-6 sm:p-8">
+      <h2 class="text-lg font-extrabold text-foreground">Adjust stock</h2>
+      <div class="mt-5 grid grid-cols-3 gap-2 rounded-xl bg-surface-soft p-4 text-center sm:gap-4">
+        <div><p class="text-xs text-muted">On hand</p><p class="mt-2 text-xl font-black text-foreground">{{ stock.quantity|default:0 }}</p></div>
+        <div><p class="text-xs text-muted">Reserved</p><p class="mt-2 text-xl font-black text-foreground">{{ stock.reserved_quantity|default:0 }}</p></div>
+        <div><p class="text-xs text-muted">Available</p><p class="mt-2 text-xl font-black text-primary">{% if stock %}{{ stock.available }}{% else %}0{% endif %}</p></div>
+      </div>
+      <form method="post" class="mt-6 space-y-5">{% csrf_token %}
+        {% if form.non_field_errors %}<div role="alert" class="rounded-xl border border-danger bg-surface-soft px-4 py-3 text-sm text-danger">{{ form.non_field_errors }}</div>{% endif %}
+        {% for field in form %}
+          <div><label class="block text-sm font-bold text-foreground" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            <div class="mt-2"><input class="w-full rounded-xl border border-line bg-surface-soft px-4 py-3 text-sm text-foreground outline-none focus:border-primary" type="{% if field.name == 'delta' %}number{% else %}text{% endif %}" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="{{ field.value|default_if_none:'' }}" {% if field.field.required %}required{% endif %}></div>
+            {% if field.help_text %}<p class="mt-1.5 text-xs leading-5 text-muted">{{ field.help_text }}</p>{% endif %}
+            {% for error in field.errors %}<p role="alert" class="mt-1 text-xs font-bold text-danger">{{ error }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+        <button class="w-full rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-on-primary hover:bg-primary-hover" type="submit">Save stock adjustment</button>
+      </form>
+      <p class="mt-4 text-xs leading-6 text-muted">You cannot reduce stock below the reserved quantity. Adjustments do not change product approval status.</p>
+    </div>
+    <aside class="rounded-2xl border border-line bg-surface p-6 sm:p-8">
+      <h2 class="text-lg font-extrabold text-foreground">Recent stock activity</h2>
+      {% if movements %}
+        <ol class="mt-5 divide-y divide-line">
+          {% for move in movements %}
+            <li class="py-3 first:pt-0"><div class="flex items-center justify-between gap-3"><span class="text-sm font-extrabold {% if move.delta > 0 %}text-success{% else %}text-danger{% endif %}">{% if move.delta > 0 %}+{% endif %}{{ move.delta }} units</span><span class="text-xs text-muted">{{ move.created_at|date:"M j, Y H:i" }}</span></div><p class="mt-1 text-xs text-muted">{{ move.before_quantity }} → {{ move.after_quantity }} units{% if move.note %} · {{ move.note }}{% endif %}</p></li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p class="mt-5 text-sm leading-7 text-muted">No stock movements yet. Your first update will appear here.</p>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+{% endblock %}

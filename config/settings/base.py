@@ -26,6 +26,7 @@ LOCAL_APPS = [
     "apps.vendors.apps.VendorsConfig",
     "apps.core.apps.CoreConfig",
     "apps.catalog.apps.CatalogConfig",
+    "apps.inventory.apps.InventoryConfig",
     "apps.shopping.apps.ShoppingConfig",
 ]
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS

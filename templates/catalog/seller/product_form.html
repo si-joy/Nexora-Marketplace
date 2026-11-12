@@ -15,6 +15,13 @@
         <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.description %}</div>
         {% include 'components/forms/field.html' with field=form.sku %}
         {% include 'components/forms/field.html' with field=form.price_bdt %}
+        {% if not editing %}
+          <div class="sm:col-span-2 rounded-2xl border border-line bg-surface-soft p-4 sm:p-5">
+            <h2 class="text-base font-extrabold text-foreground">Inventory · Initial stock</h2>
+            <p class="mt-1 text-xs leading-6 text-muted">Leave empty for zero, or enter opening units. Every nonzero opening balance is recorded in stock history.</p>
+            <div class="mt-3 max-w-xs">{% include 'components/forms/field.html' with field=form.initial_stock %}</div>
+          </div>
+        {% endif %}
       </div>
 
       <div class="rounded-2xl border border-line bg-surface-soft p-4 sm:p-5">
@@ -28,11 +35,18 @@
         </div>
       </div>
 
-      <p class="text-xs leading-6 text-muted">Products currently use one default SKU and BDT price. Seller stock and fulfillment tools are not yet present in this repository.</p>
+      <p class="text-xs leading-6 text-muted">Products currently use one default SKU and BDT price. Stock tracking is available. Use Manage Stock after saving to add or reduce units independently of product approval. Orders and payments remain unavailable.</p>
       <button type="submit" class="rounded-xl bg-primary px-6 py-3.5 text-sm font-extrabold text-on-primary hover:bg-primary-hover">Save as draft</button>
     </form>
     <aside class="space-y-5"><div class="rounded-2xl border border-line bg-surface p-5"><p class="section-overline">APPROVAL FLOW</p><div class="mt-4 space-y-3 text-sm text-muted"><p>1. Save product details</p><p>2. Upload up to 5 product photos</p><p>3. Submit for moderation</p><p>4. Admin approves listing</p></div></div>
-      {% if editing %}<div class="rounded-2xl border border-line bg-surface p-5">
+      {% if editing %}
+      <div class="rounded-2xl border border-line bg-surface p-5">
+        <p class="section-overline">INVENTORY</p>
+        <h2 class="mt-2 font-extrabold text-foreground">Stock control</h2>
+        <p class="mt-2 text-xs leading-6 text-muted">Adjust stock without changing product approval. Every update is recorded.</p>
+        <a href="{% url 'inventory:adjust' product.variants.first.pk %}" class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-xs font-extrabold text-on-primary hover:bg-primary-hover">Manage stock →</a>
+      </div>
+      <div class="rounded-2xl border border-line bg-surface p-5">
         <h2 class="font-extrabold text-foreground">Publishing</h2><p class="mt-2 text-xs leading-6 text-muted">Status: {{ product.get_status_display }}. Edited products return to Draft and require fresh approval.</p>
         {% if product.status == 'draft' or product.status == 'rejected' %}<form method="post" action="{% url 'catalog:seller_product_submit' product.pk %}" class="mt-4">{% csrf_token %}<button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-on-primary" type="submit">Submit for review</button></form>{% endif %}
         {% if product.status == 'published' %}<a class="mt-4 inline-block text-sm font-bold text-primary hover:underline" href="{% url 'catalog:marketplace_detail' product.slug %}">View public listing →</a>{% endif %}

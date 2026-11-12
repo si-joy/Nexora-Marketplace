@@ -16,6 +16,7 @@ class ProductForm(forms.Form):
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 6}))
     sku = forms.CharField(max_length=80)
     price_bdt = forms.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.01"))
+    initial_stock = forms.IntegerField(required=False, min_value=0, max_value=100_000, label="Initial stock", help_text="New products only. Leave blank for zero; edit stock separately after saving.")
     # Backward compatibility for existing single-image form submissions. Not shown in the V8 UI.
     image = forms.ImageField(required=False)
     image_1 = forms.ImageField(required=False, help_text="Main image · JPEG, PNG or WEBP · up to 5 MB.")
