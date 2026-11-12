@@ -38,14 +38,19 @@ def _bdt():
 
 
 def _save_product_images(product, cleaned):
-    uploads = cleaned.get("images") or []
+    # Support older callers that submit a single `image` upload while
+    # the seller UI uses the `images` list assembled by ProductForm.
+    uploads = list(cleaned.get("images") or [])
+    if not uploads and cleaned.get("image"):
+        uploads = [cleaned["image"]]
     if not uploads:
         return
     existing = ProductImage.objects.filter(product=product)
     existing_count = existing.count()
     if existing_count + len(uploads) > 5:
         raise ValidationError("A product can have at most 5 gallery images.")
-    next_sort = (existing.aggregate(max_sort=Max("sort_order"))["max_sort"] or -1) + 1
+    max_sort = existing.aggregate(max_sort=Max("sort_order"))["max_sort"]
+    next_sort = 0 if max_sort is None else max_sort + 1
     for offset, uploaded in enumerate(uploads):
         ProductImage.objects.create(
             product=product,
