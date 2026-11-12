@@ -5,7 +5,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 
 
 def product_image_path(instance, filename):
@@ -126,6 +126,19 @@ class Product(models.Model):
                     return price.amount
         return None
 
+    @property
+    def bdt_compare_at_price(self):
+        """Original price, shown crossed out only when a valid sale is active."""
+        for variant in self.variants.all():
+            if not variant.is_active:
+                continue
+            for price in variant.prices.all():
+                if price.currency_id == "BDT":
+                    if price.compare_at_amount and price.compare_at_amount > price.amount:
+                        return price.compare_at_amount
+                    return None
+        return None
+
     def __str__(self):
         return self.name
 
@@ -159,11 +172,16 @@ class ProductVariantPrice(models.Model):
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name="prices")
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name="variant_prices")
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    compare_at_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["variant", "currency"], name="cat_unique_variant_currency"),
             models.CheckConstraint(condition=Q(amount__gt=0), name="cat_price_positive"),
+            models.CheckConstraint(
+                condition=Q(compare_at_amount__isnull=True) | Q(compare_at_amount__gt=F("amount")),
+                name="cat_compare_higher",
+            ),
         ]
 
     def __str__(self):
