@@ -12,7 +12,7 @@ def live_products():
         store__seller__status=SellerProfile.Status.APPROVED,
         category__is_active=True,
     ).select_related("store", "category", "brand")
-     .prefetch_related("images", "variants__prices__currency"))
+     .prefetch_related("images", "variants__prices__currency", "variants__stock"))
 
 
 def search_live_products(query="", category=""):
