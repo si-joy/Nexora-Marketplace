@@ -39,6 +39,7 @@ def marketplace_detail(request, slug):
         "product": product,
         "gallery": gallery,
         "highlights": _product_highlights(product),
+        "specifications": list((product.specifications or {}).items()),
     })
 
 

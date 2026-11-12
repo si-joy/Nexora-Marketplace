@@ -182,3 +182,145 @@ def test_demo_product_card_retains_browser_cart_action(client):
     assert b"Buy now" in response.content
     assert b"data-add-bag" in response.content
     assert b"Checkout coming soon" in response.content
+
+
+@pytest.mark.django_db
+def test_seller_uploads_render_on_refined_real_detail(client, approved_seller, category, settings, tmp_path):
+    from apps.inventory.models import Stock
+
+    settings.MEDIA_ROOT = tmp_path / "media"
+    seller, reviewer, _ = approved_seller
+    fields = cleaned(category, jpeg_photo())
+    fields["highlights"] = "Bluetooth audio\n40-hour playback"
+    fields["specifications_text"] = {
+        "Connectivity": "Bluetooth",
+        "Battery": "40 hours",
+    }
+    product = create_product(seller=seller, cleaned=fields)
+    variant = product.variants.get(is_default=True)
+    Stock.objects.create(variant=variant, quantity=8)
+    submit_product(seller=seller, product_id=product.pk)
+    approve_product(reviewer=reviewer, product_id=product.pk)
+    response = client.get(reverse("catalog:marketplace_detail", args=[product.slug]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "Bluetooth audio" in html
+    assert "40-hour playback" in html
+    assert "Connectivity" in html and "Bluetooth" in html
+    assert 'data-gallery-main-image' in html
+    assert 'data-add-real-bag' in html
+    assert 'data-real-qty' in html
+    assert 'data-marketplace-favorite' in html
+    assert "Details & specifications" in html
+    assert response.context["specifications"] == [
+        ("Connectivity", "Bluetooth"), ("Battery", "40 hours"),
+    ]
+
+
+@pytest.mark.django_db
+def test_seller_form_parses_and_validates_highlights_and_specs(category):
+    from apps.catalog.forms import ProductForm
+
+    payload = {
+        "name": "Seller Editable Item", "category": category.pk, "brand": "",
+        "sku": "FORM-SPEC-001", "price_bdt": "350.00",
+        "highlights": "Fast charging\nWater resistant",
+        "specifications_text": "Color: Black\nBattery: 30 hours",
+    }
+    form = ProductForm(data=payload)
+    assert form.is_valid(), form.errors.as_json()
+    assert form.cleaned_data["highlights"].splitlines() == [
+        "Fast charging", "Water resistant"
+    ]
+    assert form.cleaned_data["specifications_text"] == {
+        "Color": "Black", "Battery": "30 hours"
+    }
+    form = ProductForm(data={**payload, "specifications_text": "Bad specification"})
+    assert not form.is_valid()
+    assert "specifications_text" in form.errors
+
+
+@pytest.mark.django_db
+def test_seller_gallery_edit_has_five_inline_slots_and_saved_previews(
+    client, approved_seller, category, settings, tmp_path
+):
+    settings.MEDIA_ROOT = tmp_path / "media"
+    seller, _, _ = approved_seller
+    values = cleaned(category)
+    values["images"] = [jpeg_photo(), jpeg_photo()]
+    product = create_product(seller=seller, cleaned=values)
+    client.force_login(seller)
+
+    response = client.get(reverse("catalog:seller_product_edit", args=[product.pk]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert html.count('data-gallery-upload-slot') == 5
+    assert html.count('data-gallery-upload-preview') == 5
+    assert html.count('data-gallery-upload-placeholder') == 5
+    assert 'js/seller-gallery.js' in html
+    assert product.images.first().image.url in html
+    assert 'Saved · tap to replace' in html
+    assert 'Tap to upload' in html
+
+
+@pytest.mark.django_db
+def test_seller_can_replace_one_slot_in_full_five_photo_gallery(
+    approved_seller, category, settings, tmp_path
+):
+    from apps.catalog.forms import ProductForm
+
+    settings.MEDIA_ROOT = tmp_path / "media"
+    seller, _, _ = approved_seller
+    values = cleaned(category)
+    values["images"] = [jpeg_photo() for _ in range(5)]
+    product = create_product(seller=seller, cleaned=values)
+
+    original = {
+        picture.sort_order: picture.image.name
+        for picture in product.images.all()
+    }
+    form = ProductForm(
+        data={
+            "name": product.name, "category": category.pk, "brand": "",
+            "sku": "REAL-HP-0001", "price_bdt": "2499.00",
+        },
+        files={"image_3": jpeg_photo()},
+        product=product,
+    )
+    assert form.is_valid(), form.errors.as_json()
+    update_product(seller=seller, product_id=product.pk, cleaned=form.cleaned_data)
+
+    updated = {
+        picture.sort_order: picture.image.name
+        for picture in product.images.all()
+    }
+    assert sorted(updated) == [0, 1, 2, 3, 4]
+    assert updated[2] != original[2]
+    assert all(updated[index] == original[index] for index in (0, 1, 3, 4))
+
+
+@pytest.mark.django_db
+def test_upload_slots_create_real_gallery_with_correct_sequence(
+    client, approved_seller, category, settings, tmp_path
+):
+    settings.MEDIA_ROOT = tmp_path / "media"
+    seller, _, _ = approved_seller
+    client.force_login(seller)
+    response = client.post(reverse("catalog:seller_product_create"), {
+        "name": "Gallery Upload Test",
+        "category": str(category.pk),
+        "brand": "",
+        "sku": "GALLERY-EDIT-002",
+        "price_bdt": "550.00",
+        "image_1": jpeg_photo(),
+        "image_2": jpeg_photo(),
+        "image_5": jpeg_photo(),
+    })
+    assert response.status_code == 302
+    product = Product.objects.get(name="Gallery Upload Test")
+    assert list(product.images.values_list("sort_order", flat=True)) == [0, 1, 4]
+    edit_html = client.get(
+        reverse("catalog:seller_product_edit", args=[product.pk])
+    ).content.decode()
+    assert edit_html.count("Saved · tap to replace") == 3
+    assert edit_html.count("Tap to upload") == 2
