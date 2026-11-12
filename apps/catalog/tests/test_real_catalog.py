@@ -143,3 +143,43 @@ def test_legacy_image_field_is_accepted_by_product_form(category):
     )
     assert form.is_valid(), form.errors.as_json()
     assert len(form.cleaned_data["images"]) == 1
+
+
+@pytest.mark.django_db
+def test_marketplace_tile_shows_cart_icon_for_stocked_product(client, approved_seller, category):
+    from apps.inventory.models import Stock
+
+    seller, _, _ = approved_seller
+    product = create_product(seller=seller, cleaned=cleaned(category))
+    product.status = Product.Status.PUBLISHED
+    product.save(update_fields=["status"])
+    variant = product.variants.get(is_default=True)
+    Stock.objects.create(variant=variant, quantity=4)
+    response = client.get(reverse("catalog:marketplace_list"))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert 'data-add-real-bag' in html
+    assert f'data-variant-id="{variant.pk}"' in html
+    assert "Buy now" in html
+    assert "Checkout coming soon" in html
+
+
+@pytest.mark.django_db
+def test_marketplace_tile_disables_cart_when_out_of_stock(client, approved_seller, category):
+    seller, _, _ = approved_seller
+    product = create_product(seller=seller, cleaned=cleaned(category))
+    product.status = Product.Status.PUBLISHED
+    product.save(update_fields=["status"])
+    response = client.get(reverse("catalog:marketplace_list"))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "Currently unavailable" in html
+    assert 'data-add-real-bag' not in html
+
+
+def test_demo_product_card_retains_browser_cart_action(client):
+    response = client.get(reverse("core:home"))
+    assert response.status_code == 200
+    assert b"Buy now" in response.content
+    assert b"data-add-bag" in response.content
+    assert b"Checkout coming soon" in response.content
