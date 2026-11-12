@@ -26,15 +26,44 @@
         {% endif %}
       </div>
 
-      <div class="rounded-2xl border border-line bg-surface-soft p-4 sm:p-5">
-        <div class="flex items-center justify-between gap-3"><div><h2 class="text-base font-extrabold text-foreground">Gallery images</h2><p class="mt-1 text-xs leading-6 text-muted">Upload up to five JPG, PNG or WebP images (5 MB each). Existing photos remain saved while you add more, up to five total.</p></div><span class="rounded-full bg-surface px-3 py-1 text-[11px] font-bold text-primary">Max 5</span></div>
-        <div class="mt-4 grid gap-4 sm:grid-cols-2">
-          {% include 'components/forms/field.html' with field=form.image_1 %}
-          {% include 'components/forms/field.html' with field=form.image_2 %}
-          {% include 'components/forms/field.html' with field=form.image_3 %}
-          {% include 'components/forms/field.html' with field=form.image_4 %}
-          {% include 'components/forms/field.html' with field=form.image_5 %}
+      <div class="rounded-2xl border border-line bg-surface-soft p-4 sm:p-5" data-seller-gallery>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="text-base font-extrabold text-foreground">Product gallery</h2>
+            <p class="mt-1 max-w-xl text-xs leading-6 text-muted">Five image slots. Click a block to upload a photo and see an instant preview. On edit, selecting a new photo in an occupied slot replaces it after saving.</p>
+          </div>
+          <span class="rounded-full bg-surface px-3 py-1 text-[11px] font-bold text-primary">5 images max</span>
         </div>
+
+        <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+          {% for slot in gallery_slots %}
+            <div data-gallery-upload-slot class="min-w-0 rounded-xl border border-line bg-surface p-2.5 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 hover:border-primary/50">
+              <div class="relative aspect-square overflow-hidden rounded-lg bg-surface-soft">
+                {% if slot.picture %}
+                  <img data-gallery-upload-preview src="{{ slot.picture.image.url }}" alt="Saved product image {{ slot.number }}" class="h-full w-full object-contain">
+                {% else %}
+                  <img data-gallery-upload-preview hidden alt="Preview of selected image {{ slot.number }}" class="h-full w-full object-contain">
+                {% endif %}
+                <span data-gallery-upload-placeholder {% if slot.picture %}hidden{% endif %} class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="size-7" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="3"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="m3 17 5-5 4 4 3-3 6 6" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 7h4M19 5v4" stroke-linecap="round"/>
+                  </svg>
+                  <span class="text-[10px] font-bold">Add photo</span>
+                </span>
+                {{ slot.field }}
+              </div>
+              <div class="mt-2">
+                <p class="text-xs font-extrabold text-foreground">{% if slot.number == 1 %}Main image{% else %}Image {{ slot.number }}{% endif %}</p>
+                <p data-gallery-upload-status class="mt-1 truncate text-[10px] leading-4 text-muted" aria-live="polite">{% if slot.picture %}Saved · tap to replace{% else %}Tap to upload{% endif %}</p>
+              </div>
+              {% for error in slot.field.errors %}<p role="alert" class="mt-2 text-xs font-semibold text-danger">{{ error }}</p>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+        <p class="mt-3 text-xs leading-5 text-muted">JPG, PNG or WebP · Maximum 5 MB per file. Images are uploaded to the product only after you click Save as draft.</p>
       </div>
 
       <p class="text-xs leading-6 text-muted">Products currently use one default SKU and BDT price. Stock tracking is available. Use Manage Stock after saving to add or reduce units independently of product approval. Orders and payments remain unavailable.</p>
@@ -52,7 +81,7 @@
         <h2 class="font-extrabold text-foreground">Publishing</h2><p class="mt-2 text-xs leading-6 text-muted">Status: {{ product.get_status_display }}. Edited products return to Draft and require fresh approval.</p>
         {% if product.status == 'draft' or product.status == 'rejected' %}<form method="post" action="{% url 'catalog:seller_product_submit' product.pk %}" class="mt-4">{% csrf_token %}<button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-on-primary" type="submit">Submit for review</button></form>{% endif %}
         {% if product.status == 'published' %}<a class="mt-4 inline-block text-sm font-bold text-primary hover:underline" href="{% url 'catalog:marketplace_detail' product.slug %}">View public listing →</a>{% endif %}
-        {% if product.images.all %}<p class="mt-5 text-xs font-bold text-muted">Uploaded images</p><div class="mt-2 grid grid-cols-3 gap-2">{% for picture in product.images.all %}<img src="{{ picture.image.url }}" alt="{{ picture.alt_text }}" class="aspect-square w-full rounded-lg border border-line object-cover">{% endfor %}</div>{% endif %}
+        <p class="mt-4 text-xs leading-6 text-muted">Saved gallery images appear in their five slots in the product form. Selecting a new image only updates the preview until you save.</p>
       </div>{% endif %}
     </aside>
   </div>
