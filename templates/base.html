@@ -19,6 +19,8 @@
   {% include 'components/footer.html' %}
   {% include 'components/cart_drawer.html' %}
   <div id="real-cart-api" hidden
+       data-saved-get="{% url 'shopping:account_saved_get' %}"
+       data-saved-change="{% url 'shopping:account_saved_change' %}"
        data-get="{% url 'shopping:real_cart_get' %}"
        data-add="{% url 'shopping:real_cart_add' %}"
        data-update="/api/market-cart/update/"

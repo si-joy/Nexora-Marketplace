@@ -1,5 +1,5 @@
-/* Nexora demo storefront: shared cart drawer + thumbnail-to-cart animation.
-   Cart and wishlist use the existing browser storage keys. No real checkout. */
+/* Nexora shared storefront: account-backed demo/marketplace saved items,
+   cart drawer and thumbnail animation. No real checkout. */
 (() => {
   "use strict";
 
@@ -10,8 +10,6 @@
     if (Array.isArray(parsed)) products = parsed;
   } catch { /* The site remains navigable if demo JSON is missing. */ }
   const catalog = new Map(products.map((product) => [product.id, product]));
-  const FAV_KEY = "nexora.demo.favorites";
-  const CART_KEY = "nexora.demo.bag";
   const MAX_CART_ITEMS = 200;
   const MAX_PER_PRODUCT = 99;
   const cards = [...document.querySelectorAll("[data-product]")];
@@ -23,16 +21,15 @@
   let toastTimeout;
   let closeTimeout;
 
-  function readIds(key) {
-    try {
-      const saved = JSON.parse(localStorage.getItem(key) || "[]");
-      return Array.isArray(saved)
-        ? saved.filter((id) => typeof id === "string" && catalog.has(id)).slice(0, MAX_CART_ITEMS)
-        : [];
-    } catch { return []; }
-  }
-  let favorites = new Set(readIds(FAV_KEY));
-  let cart = readIds(CART_KEY);
+  // Old browser-only demo keys must never show a previous customer's items.
+  try {
+    localStorage.removeItem("nexora.demo.favorites");
+    localStorage.removeItem("nexora.demo.bag");
+  } catch { /* Browser storage might be disabled. */ }
+  // No account data is read from localStorage. All saved items are account-owned.
+  let favorites = new Set();
+  let marketplaceFavorites = new Set();
+  let cart = [];
   let realCart = { authenticated: false, items: [], item_count: 0, subtotal: "0.00" };
   const realConfig = document.getElementById("real-cart-api");
   const realApi = {
@@ -43,10 +40,65 @@
     token: realConfig?.dataset.csrf,
     authenticated: realConfig?.dataset.authenticated === "true",
     login: realConfig?.dataset.login || "/account/login/",
+    savedGet: realConfig?.dataset.savedGet,
+    savedChange: realConfig?.dataset.savedChange,
   };
 
-  function save(key, values) {
-    try { localStorage.setItem(key, JSON.stringify(values)); } catch { /* Storage is optional. */ }
+  function loginForSavedItems() {
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `${realApi.login}?next=${next}`;
+  }
+  function applySavedState(state) {
+    realApi.authenticated = !!state?.authenticated;
+    if (!state?.authenticated) {
+      favorites = new Set();
+      marketplaceFavorites = new Set();
+      cart = [];
+    } else {
+      favorites = new Set((state.demo_favorites || []).filter((id) => catalog.has(id)));
+      marketplaceFavorites = new Set(state.marketplace_favorites || []);
+      cart = [];
+      for (const line of state.demo_cart || []) {
+        if (!catalog.has(line.product_id)) continue;
+        const count = Number(line.quantity);
+        if (!Number.isInteger(count) || count < 1 || count > MAX_PER_PRODUCT) continue;
+        for (let i = 0; i < count && cart.length < MAX_CART_ITEMS; i++) cart.push(line.product_id);
+      }
+    }
+    updateBadges();
+    updateHearts();
+    refreshWishlist();
+    renderCart();
+  }
+  async function refreshSavedItems() {
+    if (!realApi.authenticated) {
+      applySavedState({ authenticated: false });
+      return;
+    }
+    try {
+      const response = await fetch(realApi.savedGet, { credentials: "same-origin", cache: "no-store" });
+      if (!response.ok) throw new Error("Could not load saved items");
+      const result = await response.json();
+      applySavedState(result);
+    } catch (error) {
+      applySavedState({ authenticated: false });
+      notify("Unable to load your saved items. Please refresh.");
+    }
+  }
+  async function changeSavedItems(action, payload = {}) {
+    if (!realApi.authenticated) {
+      loginForSavedItems();
+      return null;
+    }
+    const response = await fetch(realApi.savedChange, {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": realApi.token || "" },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) throw new Error(data.error || "Unable to save your items.");
+    applySavedState(data);
+    return data;
   }
   function money(value) { return `৳${Number(value).toLocaleString("en-BD")}`; }
   function el(tag, className, content) {
@@ -65,8 +117,8 @@
   }
   function updateBadges() {
     document.querySelectorAll("[data-favorites-count]").forEach((badge) => {
-      badge.textContent = String(favorites.size);
-      badge.hidden = !favorites.size;
+      badge.textContent = String(favorites.size + marketplaceFavorites.size);
+      badge.hidden = !(favorites.size + marketplaceFavorites.size);
     });
     document.querySelectorAll("[data-bag-count]").forEach((badge) => {
       badge.textContent = String(cart.length + realCart.item_count);
@@ -91,19 +143,35 @@
       button.setAttribute("aria-label", `${active ? "Remove" : "Save"} ${button.dataset.itemName || "item"} ${active ? "from" : "to"} wishlist`);
       if (!button.closest("[data-product]")) button.textContent = active ? "♥ Saved" : "♡ Save";
     });
+    document.querySelectorAll("[data-marketplace-favorite]").forEach((button) => {
+      const id = Number(button.dataset.productId);
+      const active = marketplaceFavorites.has(id);
+      button.setAttribute("aria-pressed", String(active));
+      button.setAttribute("aria-label", `${active ? "Remove" : "Save"} ${button.dataset.productName || "item"} ${active ? "from" : "to"} wishlist`);
+      const icon = button.querySelector("[data-heart-icon]");
+      if (icon) icon.textContent = active ? "♥" : "♡";
+    });
   }
   function refreshWishlist() {
     const grid = document.getElementById("wishlist-grid");
     if (!grid) return;
-    let visibleCount = 0;
+    let demoCount = 0;
     grid.querySelectorAll("[data-product]").forEach((card) => {
       const visible = favorites.has(card.dataset.productId);
       card.hidden = !visible;
-      if (visible) visibleCount += 1;
+      if (visible) demoCount++;
     });
-    grid.hidden = visibleCount === 0;
+    grid.hidden = demoCount === 0;
+    let realCount = 0;
+    document.querySelectorAll("[data-saved-marketplace-item]").forEach((item) => {
+      const active = marketplaceFavorites.has(Number(item.dataset.productId));
+      item.hidden = !active;
+      if (active) realCount++;
+    });
+    const realGrid = document.getElementById("marketplace-wishlist-grid");
+    if (realGrid) realGrid.hidden = realCount === 0;
     const empty = document.getElementById("wishlist-empty");
-    if (empty) empty.hidden = visibleCount !== 0;
+    if (empty) empty.hidden = demoCount + realCount !== 0;
   }
   function refreshHomeFilters() {
     if (!filters.length) return;
@@ -132,16 +200,26 @@
     refreshHomeFilters();
   });
   document.querySelectorAll("[data-favorite-toggle]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const id = button.dataset.itemId;
       if (!catalog.has(id)) return;
-      if (favorites.has(id)) favorites.delete(id);
-      else favorites.add(id);
-      save(FAV_KEY, [...favorites]);
-      updateBadges();
-      updateHearts();
-      refreshWishlist();
-      notify(favorites.has(id) ? "Added to wishlist" : "Removed from wishlist");
+      button.disabled = true;
+      try {
+        const result = await changeSavedItems("demo_wishlist_toggle", { product_id: id });
+        if (result) notify(favorites.has(id) ? "Saved to your wishlist" : "Removed from wishlist");
+      } catch (error) { notify(error.message); }
+      finally { button.disabled = false; }
+    });
+  });
+  document.querySelectorAll("[data-marketplace-favorite]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = Number(button.dataset.productId);
+      button.disabled = true;
+      try {
+        const result = await changeSavedItems("marketplace_wishlist_toggle", { product_id: id });
+        if (result) notify(marketplaceFavorites.has(id) ? "Saved to your wishlist" : "Removed from wishlist");
+      } catch (error) { notify(error.message); }
+      finally { button.disabled = false; }
     });
   });
 
@@ -217,36 +295,27 @@
     button.addEventListener("click", async () => {
       const id = button.dataset.itemId;
       if (!catalog.has(id)) return;
-      if (cart.length >= MAX_CART_ITEMS || cart.filter((itemId) => itemId === id).length >= MAX_PER_PRODUCT) {
-        notify("Demo cart limit reached");
-        return;
-      }
-      // Save immediately; visual feedback finishes when the flying thumbnail lands.
-      cart.push(id);
-      save(CART_KEY, cart);
-      updateBadges();
-      renderCart();
-      await flyProductThumbnail(button);
-      bumpBadge();
-      openCart();
-      notify(`${catalog.get(id).name} added to your bag`);
+      const desired = cart.filter((itemId) => itemId === id).length + 1;
+      button.disabled = true;
+      try {
+        const result = await changeSavedItems("demo_cart_set", { product_id: id, quantity: desired });
+        if (!result) return;
+        await flyProductThumbnail(button);
+        bumpBadge();
+        openCart();
+        notify(`${catalog.get(id).name} saved to your bag`);
+      } catch (error) { notify(error.message); }
+      finally { button.disabled = false; }
     });
   });
 
-  function adjustItem(id, delta) {
-    if (delta > 0) {
-      if (cart.length >= MAX_CART_ITEMS || cart.filter((itemId) => itemId === id).length >= MAX_PER_PRODUCT) {
-        notify("Demo cart limit reached");
-        return;
-      }
-      cart.push(id);
-    } else {
-      const index = cart.indexOf(id);
-      if (index !== -1) cart.splice(index, 1);
-    }
-    save(CART_KEY, cart);
-    updateBadges();
-    renderCart();
+  async function adjustItem(id, delta) {
+    const current = cart.filter((itemId) => itemId === id).length;
+    try {
+      await changeSavedItems("demo_cart_set", {
+        product_id: id, quantity: Math.max(0, current + delta),
+      });
+    } catch (error) { notify(error.message); }
   }
 
   function renderCart() {
@@ -311,7 +380,7 @@
       row.append(visual, content);
       list.append(row);
     }
-    if (quantities.size && realCart.items.length) list.append(el("div", "cart-section-title", "Demo products · This browser only"));
+    if (quantities.size && realCart.items.length) list.append(el("div", "cart-section-title", "Demo products · Saved to your account"));
     for (const [id, quantity] of quantities) {
       const item = catalog.get(id);
       if (!item) continue;
@@ -348,10 +417,7 @@
       remove.type = "button";
       remove.setAttribute("aria-label", `Remove ${item.name} from bag`);
       remove.addEventListener("click", () => {
-        cart = cart.filter((cartId) => cartId !== id);
-        save(CART_KEY, cart);
-        updateBadges();
-        renderCart();
+        adjustItem(id, -quantity);
       });
       footer.append(quantityControls, remove);
       content.append(footer);
@@ -366,13 +432,15 @@
     });
   }
   drawer?.querySelector("[data-clear-cart]")?.addEventListener("click", async () => {
-    cart = [];
-    save(CART_KEY, cart);
-    updateBadges();
-    renderCart();
-    if (realCart.item_count && realApi.authenticated) {
-      try { await writeReal(realApi.clear, {}); }
-      catch (error) { notify(error.message); await refreshRealCart(); }
+    if (!realApi.authenticated) return;
+    try {
+      // Clear the account-owned demo bag and marketplace bag independently.
+      await changeSavedItems("demo_cart_clear");
+      if (realCart.item_count) await writeReal(realApi.clear, {});
+    } catch (error) {
+      notify(error.message);
+      await refreshSavedItems();
+      await refreshRealCart();
     }
   });
 
@@ -388,7 +456,7 @@
         updateBadges();
         renderCart();
       }
-    } catch { /* Demo cart remains usable while the network is offline. */ }
+    } catch { /* Existing saved-item state remains unchanged on API failure. */ }
   }
 
   async function writeReal(url, payload) {
@@ -441,22 +509,31 @@
     window.history.replaceState(window.history.state, "", locationUrl.pathname + locationUrl.search + locationUrl.hash);
     openCart();
   }
-  window.addEventListener("storage", (event) => {
-    if (event.key !== CART_KEY && event.key !== FAV_KEY) return;
-    favorites = new Set(readIds(FAV_KEY));
-    cart = readIds(CART_KEY);
-    updateBadges();
-    updateHearts();
-    refreshWishlist();
-    renderCart();
-  });
-
   updateBadges();
   updateHearts();
   refreshHomeFilters();
   refreshWishlist();
   renderCart();
+  refreshSavedItems();
   refreshRealCart();
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      // An account may have signed out in a different tab.
+      refreshSavedItems();
+      refreshRealCart();
+    }
+  });
+
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) {
+      // A restored back/forward page must never expose a previous account.
+      realCart = { authenticated: false, items: [], item_count: 0, subtotal: "0.00" };
+      applySavedState({ authenticated: false });
+      refreshSavedItems();
+      refreshRealCart();
+    }
+  });
 
   function initProductGalleries() {
     document.querySelectorAll("[data-product-gallery]").forEach((gallery) => {
