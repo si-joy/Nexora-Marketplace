@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q
 
@@ -133,6 +133,13 @@ class ProductVariant(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["product"], condition=Q(is_default=True), name="cat_one_default_variant"),
         ]
+
+    @property
+    def available_stock(self):
+        try:
+            return self.stock.available
+        except ObjectDoesNotExist:
+            return 0
 
     def __str__(self):
         return self.sku
