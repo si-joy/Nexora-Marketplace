@@ -114,3 +114,32 @@ def test_unapproved_product_never_public(approved_seller, category, client):
     assert client.get(reverse("catalog:marketplace_list")).status_code == 200
     assert b"Real Headphones" not in client.get(reverse("catalog:marketplace_list")).content
     assert client.get(reverse("catalog:marketplace_detail", args=[product.slug])).status_code == 404
+
+
+
+@pytest.mark.django_db
+def test_gallery_list_uploads_keep_original_order(approved_seller, category, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path / "media"
+    seller, _, _ = approved_seller
+    values = cleaned(category)
+    values["images"] = [jpeg_photo(), jpeg_photo()]
+    product = create_product(seller=seller, cleaned=values)
+    photos = list(product.images.order_by("sort_order", "id"))
+    assert len(photos) == 2
+    assert [photo.sort_order for photo in photos] == [0, 1]
+    assert all(photo.image.name for photo in photos)
+
+
+@pytest.mark.django_db
+def test_legacy_image_field_is_accepted_by_product_form(category):
+    from apps.catalog.forms import ProductForm
+
+    data = cleaned(category)
+    uploaded = data.pop("image")
+    assert uploaded is None
+    form = ProductForm(
+        data={**data, "category": category.pk, "brand": ""},
+        files={"image": jpeg_photo()},
+    )
+    assert form.is_valid(), form.errors.as_json()
+    assert len(form.cleaned_data["images"]) == 1
