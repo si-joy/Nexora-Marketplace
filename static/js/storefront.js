@@ -10,8 +10,6 @@
     if (Array.isArray(parsed)) products = parsed;
   } catch { /* The site remains navigable if demo JSON is missing. */ }
   const catalog = new Map(products.map((product) => [product.id, product]));
-  const FAV_KEY = "nexora.demo.favorites";
-  const CART_KEY = "nexora.demo.bag";
   const MAX_CART_ITEMS = 200;
   const MAX_PER_PRODUCT = 99;
   const cards = [...document.querySelectorAll("[data-product]")];
@@ -229,36 +227,27 @@
     button.addEventListener("click", async () => {
       const id = button.dataset.itemId;
       if (!catalog.has(id)) return;
-      if (cart.length >= MAX_CART_ITEMS || cart.filter((itemId) => itemId === id).length >= MAX_PER_PRODUCT) {
-        notify("Demo cart limit reached");
-        return;
-      }
-      // Save immediately; visual feedback finishes when the flying thumbnail lands.
-      cart.push(id);
-      save(CART_KEY, cart);
-      updateBadges();
-      renderCart();
-      await flyProductThumbnail(button);
-      bumpBadge();
-      openCart();
-      notify(`${catalog.get(id).name} added to your bag`);
+      const desired = cart.filter((itemId) => itemId === id).length + 1;
+      button.disabled = true;
+      try {
+        const result = await changeSavedItems("demo_cart_set", { product_id: id, quantity: desired });
+        if (!result) return;
+        await flyProductThumbnail(button);
+        bumpBadge();
+        openCart();
+        notify(`${catalog.get(id).name} saved to your bag`);
+      } catch (error) { notify(error.message); }
+      finally { button.disabled = false; }
     });
   });
 
-  function adjustItem(id, delta) {
-    if (delta > 0) {
-      if (cart.length >= MAX_CART_ITEMS || cart.filter((itemId) => itemId === id).length >= MAX_PER_PRODUCT) {
-        notify("Demo cart limit reached");
-        return;
-      }
-      cart.push(id);
-    } else {
-      const index = cart.indexOf(id);
-      if (index !== -1) cart.splice(index, 1);
-    }
-    save(CART_KEY, cart);
-    updateBadges();
-    renderCart();
+  async function adjustItem(id, delta) {
+    const current = cart.filter((itemId) => itemId === id).length;
+    try {
+      await changeSavedItems("demo_cart_set", {
+        product_id: id, quantity: Math.max(0, current + delta),
+      });
+    } catch (error) { notify(error.message); }
   }
 
   function renderCart() {
@@ -360,10 +349,7 @@
       remove.type = "button";
       remove.setAttribute("aria-label", `Remove ${item.name} from bag`);
       remove.addEventListener("click", () => {
-        cart = cart.filter((cartId) => cartId !== id);
-        save(CART_KEY, cart);
-        updateBadges();
-        renderCart();
+        adjustItem(id, -quantity);
       });
       footer.append(quantityControls, remove);
       content.append(footer);
@@ -378,13 +364,15 @@
     });
   }
   drawer?.querySelector("[data-clear-cart]")?.addEventListener("click", async () => {
-    cart = [];
-    save(CART_KEY, cart);
-    updateBadges();
-    renderCart();
-    if (realCart.item_count && realApi.authenticated) {
-      try { await writeReal(realApi.clear, {}); }
-      catch (error) { notify(error.message); await refreshRealCart(); }
+    if (!realApi.authenticated) return;
+    try {
+      // Clear the account-owned demo bag and marketplace bag independently.
+      await changeSavedItems("demo_cart_clear");
+      if (realCart.item_count) await writeReal(realApi.clear, {});
+    } catch (error) {
+      notify(error.message);
+      await refreshSavedItems();
+      await refreshRealCart();
     }
   });
 
@@ -453,22 +441,23 @@
     window.history.replaceState(window.history.state, "", locationUrl.pathname + locationUrl.search + locationUrl.hash);
     openCart();
   }
-  window.addEventListener("storage", (event) => {
-    if (event.key !== CART_KEY && event.key !== FAV_KEY) return;
-    favorites = new Set(readIds(FAV_KEY));
-    cart = readIds(CART_KEY);
-    updateBadges();
-    updateHearts();
-    refreshWishlist();
-    renderCart();
-  });
-
   updateBadges();
   updateHearts();
   refreshHomeFilters();
   refreshWishlist();
   renderCart();
+  refreshSavedItems();
   refreshRealCart();
+
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) {
+      // A restored back/forward page must never expose a previous account.
+      applySavedState({ authenticated: false });
+      realCart = { authenticated: false, items: [], item_count: 0, subtotal: "0.00" };
+      refreshSavedItems();
+      refreshRealCart();
+    }
+  });
 
   function initProductGalleries() {
     document.querySelectorAll("[data-product-gallery]").forEach((gallery) => {
