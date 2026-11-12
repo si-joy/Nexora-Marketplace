@@ -1,131 +1,142 @@
 {% extends 'base.html' %}
 {% block title %}{{ product.name }} | Nexora Marketplace{% endblock %}
 {% block content %}
-<section class="mx-auto max-w-7xl px-4 pb-20 pt-7 sm:px-6 xl:px-8">
-  <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">
-    <a href="{% url 'catalog:marketplace_list' %}" class="hover:text-primary">Marketplace</a>
+<main class="mx-auto w-full max-w-[1200px] px-4 pb-14 pt-6 sm:px-6 sm:pb-20 sm:pt-8 xl:px-8">
+  <nav aria-label="Breadcrumb" class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-muted">
+    <a href="{% url 'catalog:marketplace_list' %}" class="transition-colors hover:text-primary">Marketplace</a>
     <span aria-hidden="true">/</span>
     <span>{{ product.category.name }}</span>
     <span aria-hidden="true">/</span>
-    <span aria-current="page" class="max-w-[20rem] truncate text-foreground">{{ product.name }}</span>
+    <span aria-current="page" class="min-w-0 max-w-[16rem] truncate font-semibold text-foreground sm:max-w-[28rem]">{{ product.name }}</span>
   </nav>
 
-  <div data-real-product class="mt-7 grid items-start gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,.92fr)] lg:gap-12">
-    <section data-product-gallery aria-label="Product gallery" class="min-w-0">
-      <div data-gallery-stage class="product-gallery-stage product-gallery-stage--photo aspect-[4/3] min-h-0 w-full p-4 sm:p-7">
+  <section data-real-product class="mt-6 grid min-w-0 items-start gap-8 lg:mt-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)] lg:gap-10 xl:gap-12" aria-label="Product overview">
+    <div data-product-gallery class="marketplace-detail-gallery min-w-0">
+      <div data-gallery-stage class="product-gallery-stage product-gallery-stage--photo w-full">
         {% if gallery %}
-          <img data-gallery-main-image src="{{ gallery.0.image.url }}" alt="{{ gallery.0.alt_text|default:product.name }}" width="720" height="540" fetchpriority="high" class="h-full max-h-[490px] w-full object-contain">
+          <img data-gallery-main-image src="{{ gallery.0.image.url }}" alt="{{ gallery.0.alt_text|default:product.name }}" width="720" height="600" fetchpriority="high" class="h-full w-full object-contain">
           {% if gallery|length > 1 %}
-            <button type="button" data-gallery-nav="prev" class="gallery-nav gallery-nav--prev" aria-label="Previous image">‹</button>
-            <button type="button" data-gallery-nav="next" class="gallery-nav gallery-nav--next" aria-label="Next image">›</button>
+            <button type="button" data-gallery-nav="prev" class="gallery-nav gallery-nav--prev" aria-label="Previous product image">‹</button>
+            <button type="button" data-gallery-nav="next" class="gallery-nav gallery-nav--next" aria-label="Next product image">›</button>
           {% endif %}
         {% else %}
-          <p class="text-sm font-semibold text-muted">Product image unavailable</p>
+          <p class="text-sm font-medium text-muted">Product image unavailable</p>
         {% endif %}
       </div>
+
       {% if gallery %}
-        <div class="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-none" aria-label="Choose product image">
+        <div class="mt-3 grid grid-cols-5 gap-2 sm:mt-4 sm:gap-3" aria-label="Choose product image">
           {% for picture in gallery %}
-            <button type="button" data-gallery-thumb data-index="{{ forloop.counter0 }}" data-src="{{ picture.image.url }}" data-alt="{{ picture.alt_text|default:product.name }}" class="product-gallery-thumb h-[78px] w-[78px] sm:h-[90px] sm:w-[90px] {% if forloop.first %}is-active{% endif %}" aria-label="View image {{ forloop.counter }} of {{ gallery|length }}" {% if forloop.first %}aria-current="true"{% endif %}>
-              <span class="product-gallery-thumb__photo"><img src="{{ picture.image.url }}" loading="lazy" alt="" width="90" height="90" class="h-full w-full object-cover"></span>
+            <button type="button" data-gallery-thumb data-index="{{ forloop.counter0 }}" data-src="{{ picture.image.url }}" data-alt="{{ picture.alt_text|default:product.name }}" class="product-gallery-thumb {% if forloop.first %}is-active{% endif %}" aria-label="View image {{ forloop.counter }} of {{ gallery|length }}" {% if forloop.first %}aria-current="true"{% endif %}>
+              <span class="product-gallery-thumb__photo"><img src="{{ picture.image.url }}" loading="lazy" alt="" width="110" height="110" class="h-full w-full object-cover"></span>
             </button>
           {% endfor %}
         </div>
-        <p class="mt-2 text-xs text-muted">{{ gallery|length }} product photo{{ gallery|length|pluralize }} · Select an image to preview</p>
+        <p class="mt-3 text-xs text-muted">{{ gallery|length }} image{{ gallery|length|pluralize }} · Click any thumbnail to switch</p>
       {% endif %}
-    </section>
+    </div>
 
-    <section class="min-w-0">
+    <div class="min-w-0">
       <div class="flex flex-wrap items-center gap-2">
-        <span class="section-overline">{{ product.category.name }}</span>
-        {% if product.brand %}<span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-bold text-primary">{{ product.brand.name }}</span>{% endif %}
-        <span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-bold text-secondary">Approved seller</span>
+        <span class="text-xs font-extrabold uppercase tracking-[.12em] text-secondary">{{ product.category.name }}</span>
+        {% if product.brand %}<span class="rounded-full border border-line px-2.5 py-1 text-xs font-semibold text-muted">{{ product.brand.name }}</span>{% endif %}
+        <span class="rounded-full bg-surface-soft px-2.5 py-1 text-xs font-semibold text-success">Approved seller</span>
       </div>
-      <h1 class="mt-4 text-3xl font-black leading-tight tracking-tight text-foreground sm:text-4xl">{{ product.name }}</h1>
-      {% if product.short_description %}<p class="mt-3 text-sm leading-7 text-muted sm:text-base">{{ product.short_description }}</p>{% endif %}
+      <h1 class="mt-3 text-[1.8rem] font-black leading-[1.18] tracking-tight text-foreground sm:text-[2.25rem] lg:text-[2.5rem]">{{ product.name }}</h1>
+      {% if product.short_description %}
+        <p class="mt-3 text-sm leading-7 text-muted sm:text-[15px]">{{ product.short_description }}</p>
+      {% endif %}
 
-      <div class="mt-7 rounded-[24px] border border-line bg-surface p-5 shadow-[0_16px_35px_var(--app-shadow)] sm:p-6">
-        <div class="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-muted">Price</p>
-            <p class="mt-2 text-3xl font-black tracking-tight text-foreground">{% if product.bdt_price != None %}৳{{ product.bdt_price|floatformat:2 }}{% else %}Unavailable{% endif %}</p>
+      <div class="mt-6 rounded-[22px] border border-line bg-surface p-5 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <div class="min-w-0">
+            <p class="text-[11px] font-bold uppercase tracking-[.12em] text-muted">Price</p>
+            <p class="mt-1 text-3xl font-black tracking-tight text-foreground sm:text-[2.15rem]">
+              {% if product.bdt_price != None %}৳{{ product.bdt_price|floatformat:2 }}{% else %}Unavailable{% endif %}
+            </p>
           </div>
           {% with variant=product.shop_variant %}
             {% if variant and variant.available_stock > 0 %}
-              <span class="rounded-xl bg-surface-soft px-3 py-2 text-xs font-bold text-success">● In stock · {{ variant.available_stock }} available</span>
+              <span class="rounded-full bg-surface-soft px-3 py-2 text-xs font-bold text-success">● {{ variant.available_stock }} in stock</span>
             {% else %}
-              <span class="rounded-xl bg-surface-soft px-3 py-2 text-xs font-bold text-danger">● Out of stock</span>
+              <span class="rounded-full bg-surface-soft px-3 py-2 text-xs font-bold text-danger">● Out of stock</span>
             {% endif %}
           {% endwith %}
         </div>
-        <div class="my-5 border-t border-line"></div>
-        {% with variant=product.shop_variant %}
-          {% if variant and variant.available_stock > 0 and product.bdt_price != None %}
-            <button type="button" data-add-real-bag data-variant-id="{{ variant.id }}" class="w-full rounded-xl bg-primary px-6 py-4 text-sm font-extrabold text-on-primary transition hover:bg-primary-hover">Add to bag</button>
-          {% else %}
-            <button type="button" disabled class="w-full cursor-not-allowed rounded-xl bg-surface-soft px-6 py-4 text-sm font-bold text-muted">Currently unavailable</button>
-          {% endif %}
-        {% endwith %}
-        <p class="mt-3 text-center text-xs leading-5 text-muted">Cart saving is available; checkout and payment are not enabled yet.</p>
+        <div class="mt-5">
+          {% with variant=product.shop_variant %}
+            {% if variant and variant.available_stock > 0 and product.bdt_price != None %}
+              <button type="button" data-add-real-bag data-variant-id="{{ variant.id }}" class="w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-on-primary transition hover:bg-primary-hover">Add to bag</button>
+            {% else %}
+              <button type="button" disabled class="w-full cursor-not-allowed rounded-xl bg-surface-soft px-5 py-3.5 text-sm font-bold text-muted">Currently unavailable</button>
+            {% endif %}
+          {% endwith %}
+        </div>
+        <p class="mt-3 text-xs leading-5 text-muted">Cart saving is available. Checkout and payment have not been enabled yet.</p>
       </div>
 
-      <div class="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-5">
-        <div>
-          <p class="text-xs font-semibold text-muted">Sold by</p>
-          <p class="mt-1 text-base font-extrabold text-foreground">{{ product.store.name }}</p>
+      <div class="mt-4 flex items-center justify-between gap-3 rounded-[18px] border border-line bg-surface px-5 py-4">
+        <div class="min-w-0">
+          <p class="text-xs text-muted">Sold by</p>
+          <p class="mt-1 truncate text-sm font-extrabold text-foreground">{{ product.store.name }}</p>
         </div>
-        <a href="{% url 'catalog:marketplace_store' product.store.slug %}" class="rounded-xl border border-line bg-surface-soft px-4 py-2.5 text-xs font-bold text-primary hover:border-primary">Visit store →</a>
+        <a href="{% url 'catalog:marketplace_store' product.store.slug %}" class="shrink-0 rounded-lg bg-surface-soft px-3.5 py-2.5 text-xs font-bold text-primary transition hover:bg-line">Visit store →</a>
       </div>
+
       {% if highlights %}
-        <div class="mt-5 rounded-2xl bg-surface-soft p-5">
-          <h2 class="text-sm font-extrabold text-foreground">Quick highlights</h2>
-          <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
+        <div class="mt-5 border-t border-line pt-5">
+          <h2 class="text-sm font-extrabold text-foreground">Key highlights</h2>
+          <ul class="mt-3 grid gap-2">
             {% for item in highlights|slice:':3' %}
-              <li class="flex items-start gap-2"><span class="text-secondary" aria-hidden="true">✓</span><span>{{ item|truncatechars:110 }}</span></li>
+              <li class="flex min-w-0 items-start gap-2.5 text-sm leading-6 text-muted">
+                <span class="shrink-0 font-bold text-secondary" aria-hidden="true">✓</span>
+                <span>{{ item|truncatechars:115 }}</span>
+              </li>
             {% endfor %}
           </ul>
         </div>
       {% endif %}
-    </section>
-  </div>
+    </div>
+  </section>
 
-  <section class="mt-12 border-t border-line pt-10 sm:mt-16" aria-labelledby="product-information-heading">
+  <section class="mt-10 border-t border-line pt-9 sm:mt-12 sm:pt-10" aria-labelledby="product-information-heading">
     <p class="section-overline">Product information</p>
-    <h2 id="product-information-heading" class="mt-2 text-2xl font-black tracking-tight text-foreground sm:text-3xl">Everything you need to know</h2>
-    <div class="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]">
-      <article class="min-w-0 rounded-[24px] border border-line bg-surface p-6 sm:p-8">
-        <h3 class="text-lg font-extrabold text-foreground">Description</h3>
+    <h2 id="product-information-heading" class="mt-2 text-2xl font-black tracking-tight text-foreground sm:text-[1.85rem]">Details & specifications</h2>
+    <div class="mt-5 grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(290px,1fr)] lg:gap-6">
+      <article class="min-w-0 rounded-[22px] border border-line bg-surface p-5 sm:p-7">
+        <h3 class="text-base font-extrabold text-foreground">Description</h3>
         {% if product.description %}
-          {% if product.description|length > 550 %}
-            <p class="mt-4 whitespace-pre-line text-sm leading-8 text-muted">{{ product.description|truncatechars:550 }}</p>
+          {% if product.description|length > 320 %}
+            <div class="mt-4 whitespace-pre-line break-words text-sm leading-7 text-muted">{{ product.description|truncatechars:320 }}</div>
             <details class="mt-4 border-t border-line pt-4">
               <summary class="cursor-pointer text-sm font-bold text-primary hover:underline">Read full description</summary>
-              <div class="mt-4 whitespace-pre-line text-sm leading-8 text-muted">{{ product.description }}</div>
+              <div class="mt-4 whitespace-pre-line break-words text-sm leading-7 text-muted">{{ product.description }}</div>
             </details>
           {% else %}
-            <div class="mt-4 whitespace-pre-line text-sm leading-8 text-muted">{{ product.description }}</div>
+            <div class="mt-4 whitespace-pre-line break-words text-sm leading-7 text-muted">{{ product.description }}</div>
           {% endif %}
         {% else %}
-          <p class="mt-4 text-sm text-muted">The seller has not provided a description yet.</p>
+          <p class="mt-4 text-sm leading-7 text-muted">The seller has not provided a description yet.</p>
         {% endif %}
       </article>
-      <aside class="space-y-5">
-        <section class="rounded-[24px] border border-line bg-surface p-6">
+
+      <aside class="min-w-0 space-y-5">
+        <section class="rounded-[22px] border border-line bg-surface p-5 sm:p-6">
           <h3 class="text-base font-extrabold text-foreground">Specifications</h3>
-          <dl class="mt-5 divide-y divide-line text-sm">
-            <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Category</dt><dd class="text-right font-semibold text-foreground">{{ product.category.name }}</dd></div>
-            {% if product.brand %}<div class="flex justify-between gap-4 py-3"><dt class="text-muted">Brand</dt><dd class="text-right font-semibold text-foreground">{{ product.brand.name }}</dd></div>{% endif %}
-            {% with variant=product.shop_variant %}{% if variant %}<div class="flex justify-between gap-4 py-3"><dt class="text-muted">SKU</dt><dd class="text-right font-semibold text-foreground">{{ variant.sku }}</dd></div>{% endif %}{% endwith %}
-            <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Photos</dt><dd class="font-semibold text-foreground">{{ gallery|length }}</dd></div>
-            <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Seller</dt><dd class="text-right font-semibold text-foreground">{{ product.store.name }}</dd></div>
+          <dl class="mt-3 divide-y divide-line text-sm">
+            <div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">Category</dt><dd class="min-w-0 break-words text-right font-semibold text-foreground">{{ product.category.name }}</dd></div>
+            {% if product.brand %}<div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">Brand</dt><dd class="min-w-0 break-words text-right font-semibold text-foreground">{{ product.brand.name }}</dd></div>{% endif %}
+            {% with variant=product.shop_variant %}{% if variant %}<div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">SKU</dt><dd class="min-w-0 break-all text-right font-semibold text-foreground">{{ variant.sku }}</dd></div>{% endif %}{% endwith %}
+            <div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">Images</dt><dd class="font-semibold text-foreground">{{ gallery|length }}</dd></div>
+            <div class="flex items-start justify-between gap-4 py-3"><dt class="text-muted">Store</dt><dd class="min-w-0 break-words text-right font-semibold text-foreground">{{ product.store.name }}</dd></div>
           </dl>
         </section>
-        <div class="rounded-[24px] bg-surface-soft p-6">
-          <h3 class="font-extrabold text-foreground">Order information</h3>
-          <p class="mt-3 text-sm leading-7 text-muted">Adding an item to your bag does not reserve stock. Checkout and payment are coming in a later phase.</p>
-        </div>
+        <section class="rounded-[18px] bg-surface-soft p-5 sm:p-6">
+          <h3 class="text-sm font-extrabold text-foreground">Before you order</h3>
+          <p class="mt-2 text-sm leading-7 text-muted">Adding products to your cart does not reserve stock. Checkout and payment are coming in a later phase.</p>
+        </section>
       </aside>
     </div>
   </section>
-</section>
+</main>
 {% endblock %}
