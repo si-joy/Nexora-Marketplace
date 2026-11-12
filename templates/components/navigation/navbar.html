@@ -23,7 +23,7 @@
     <div class="order-2 flex items-center gap-1.5 sm:gap-3 lg:order-none">
       {% include 'components/theme_toggle.html' %}
       {% include 'components/navigation/account_menu.html' %}
-      <a href="{% url 'shopping:wishlist' %}" data-view-favorites class="relative inline-flex size-10 items-center justify-center rounded-xl text-foreground transition hover:bg-surface-soft hover:text-primary" aria-label="Open demo wishlist" title="Demo wishlist">
+      <a href="{% url 'shopping:wishlist' %}" data-view-favorites class="relative inline-flex size-10 items-center justify-center rounded-xl text-foreground transition hover:bg-surface-soft hover:text-primary" aria-label="Open your wishlist" title="Your wishlist">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-[21px]" aria-hidden="true"><path d="M20.8 4.9a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.3a5.5 5.5 0 0 0 0-7.8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span data-favorites-count hidden class="absolute -right-1 -top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-on-primary">0</span>
       </a>
