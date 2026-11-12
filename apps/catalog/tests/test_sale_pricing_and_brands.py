@@ -141,9 +141,14 @@ def test_seller_brand_editor_is_compact_and_toggles_on_validation_error(
 
 
 @pytest.mark.django_db
-def test_catalog_product_image_wrappers_use_full_cover(client, approved_seller, category):
+def test_catalog_product_image_wrappers_use_full_cover(
+    client, approved_seller, category, settings, tmp_path
+):
+    settings.MEDIA_ROOT = tmp_path / "media"
     seller, _, _ = approved_seller
-    values = cleaned(category)
+    # A rendered <img> needs an uploaded photo; without it the card shows
+    # the "Image coming soon" placeholder instead.
+    values = cleaned(category, jpeg_photo())
     product = create_product(seller=seller, cleaned=values)
     product.status = product.Status.PUBLISHED
     product.save(update_fields=["status"])
@@ -166,4 +171,7 @@ def test_catalog_product_image_wrappers_use_full_cover(client, approved_seller, 
 
     page = client.get(reverse("catalog:marketplace_list"))
     assert page.status_code == 200
-    assert 'object-cover object-center' in page.content.decode()
+    html = page.content.decode()
+    assert product.name in html
+    assert f'src="{product.primary_image.image.url}"' in html
+    assert 'absolute inset-0 h-full w-full object-cover object-center' in html
