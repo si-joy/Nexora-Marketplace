@@ -1,4 +1,5 @@
 from django.conf import settings
+import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
 
@@ -18,7 +19,7 @@ class Migration(migrations.Migration):
         ]),
         migrations.CreateModel(name="CartItem", fields=[
             ("id", models.BigAutoField(primary_key=True, serialize=False)),
-            ("quantity", models.PositiveSmallIntegerField()),
+            ("quantity", models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(99)])),
             ("added_at", models.DateTimeField(auto_now_add=True)),
             ("cart", models.ForeignKey(to="shopping.cart", related_name="items", on_delete=django.db.models.deletion.CASCADE)),
             ("variant", models.ForeignKey(to="catalog.productvariant", related_name="cart_items", on_delete=django.db.models.deletion.PROTECT)),
