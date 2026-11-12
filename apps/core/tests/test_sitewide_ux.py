@@ -16,7 +16,8 @@ def test_home_links_to_approved_marketplace(client):
 def test_shared_footer_and_cart_copy_is_accurate(client):
     response = client.get(reverse("core:home"))
     html = response.content.decode()
-    assert "Checkout not yet live" in html
+    assert "Marketplace · Manual COD order requests" in html
+    assert "Only approved seller listings in Marketplace support manual COD order requests" in html
     assert "Approved seller listings" in html
     assert "Signed-in shoppers can save demo and approved marketplace items" in html
     assert "Signed-out visitors cannot access saved items" in html
