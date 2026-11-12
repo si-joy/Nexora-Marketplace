@@ -77,9 +77,9 @@
             <div data-gallery-upload-slot class="min-w-0 rounded-xl border border-line bg-surface p-2.5 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 hover:border-primary/50">
               <div class="relative aspect-square overflow-hidden rounded-lg bg-surface-soft">
                 {% if slot.picture %}
-                  <img data-gallery-upload-preview src="{{ slot.picture.image.url }}" alt="Saved product image {{ slot.number }}" class="h-full w-full object-contain">
+                  <img data-gallery-upload-preview src="{{ slot.picture.image.url }}" alt="Saved product image {{ slot.number }}" class="absolute inset-0 h-full w-full object-cover object-center">
                 {% else %}
-                  <img data-gallery-upload-preview hidden alt="Preview of selected image {{ slot.number }}" class="h-full w-full object-contain">
+                  <img data-gallery-upload-preview hidden alt="Preview of selected image {{ slot.number }}" class="absolute inset-0 h-full w-full object-cover object-center">
                 {% endif %}
                 <span data-gallery-upload-placeholder {% if slot.picture %}hidden{% endif %} class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="size-7" aria-hidden="true">
