@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import JsonResponse
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 from apps.catalog.services.products import require_seller_store
@@ -103,8 +104,12 @@ def customer_cancel_line(request, line_id):
     try:
         line = customer_cancel(user=request.user, line_id=line_id)
     except ValidationError as error:
+        if request.headers.get("X-Customer-Panel") == "1":
+            return JsonResponse({"ok": False, "error": "; ".join(error.messages)}, status=400)
         messages.error(request, "; ".join(error.messages))
         return redirect("orders:customer_orders")
+    if request.headers.get("X-Customer-Panel") == "1":
+        return JsonResponse({"ok": True})
     messages.success(request, "The pending item was cancelled and reserved stock released.")
     return redirect("orders:customer_order_detail", order_id=line.order_id)
 
