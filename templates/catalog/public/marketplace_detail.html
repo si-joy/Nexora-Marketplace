@@ -55,6 +55,7 @@
 
       <div class="mt-6 flex flex-wrap items-end gap-3 border-b border-line pb-6">
         <strong class="text-3xl font-black tracking-tight text-foreground sm:text-[2.5rem]">{% if product.bdt_price != None %}৳{{ product.bdt_price|floatformat:2 }}{% else %}Price unavailable{% endif %}</strong>
+        {% if product.bdt_compare_at_price %}<del class="pb-1 text-sm font-semibold text-muted">৳{{ product.bdt_compare_at_price|floatformat:2 }}</del>{% endif %}
         {% with variant=product.shop_variant %}
           {% if variant and variant.available_stock > 0 %}
             <span class="mb-1 ml-auto rounded-full bg-surface-soft px-3 py-1.5 text-[11px] font-bold text-success">{{ variant.available_stock }} available</span>
