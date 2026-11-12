@@ -33,3 +33,47 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.variant.sku} × {self.quantity}"
+
+
+class DemoCartItem(models.Model):
+    """A sample-catalog selection belonging to one account, never localStorage."""
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="demo_items")
+    product_id = models.CharField(max_length=100)
+    quantity = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(99)]
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("cart", "product_id"), name="shopping_unique_demo_cart_item"),
+            models.CheckConstraint(condition=Q(quantity__gte=1, quantity__lte=99), name="shopping_demo_cart_qty_range"),
+        ]
+
+
+class DemoWishlistItem(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="demo_wishlist"
+    )
+    product_id = models.CharField(max_length=100)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("user", "product_id"), name="shopping_unique_demo_wishlist"),
+        ]
+
+
+class MarketplaceWishlistItem(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="marketplace_wishlist"
+    )
+    product = models.ForeignKey(
+        "catalog.Product", on_delete=models.CASCADE, related_name="saved_by_users"
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("user", "product"), name="shopping_unique_marketplace_wishlist"),
+        ]
