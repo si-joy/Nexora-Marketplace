@@ -11,7 +11,16 @@ from .models import Brand, Category, Product, ProductVariant
 class ProductForm(forms.Form):
     name = forms.CharField(max_length=200, strip=True)
     category = forms.ModelChoiceField(queryset=Category.objects.none())
-    brand = forms.ModelChoiceField(queryset=Brand.objects.none(), required=False)
+    brand = forms.ModelChoiceField(
+        queryset=Brand.objects.none(), required=False,
+        label="Existing brand",
+        help_text="Choose a brand already in the catalog, or enter a new one below.",
+    )
+    new_brand_name = forms.CharField(
+        max_length=120, required=False, label="Create a new brand",
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Acme Beauty"}),
+        help_text="Can't find your brand? Type its name here; you can leave Existing brand blank.",
+    )
     short_description = forms.CharField(max_length=240, required=False, widget=forms.Textarea(attrs={"rows": 2}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 6}))
     highlights = forms.CharField(
@@ -25,7 +34,16 @@ class ProductForm(forms.Form):
         help_text="Up to 12 specifications, formatted as Name: Value.",
     )
     sku = forms.CharField(max_length=80)
-    price_bdt = forms.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.01"))
+    price_bdt = forms.DecimalField(
+        max_digits=12, decimal_places=2, min_value=Decimal("0.01"),
+        label="Regular price (BDT)",
+        help_text="Original price before any discount. Required.",
+    )
+    sale_price_bdt = forms.DecimalField(
+        max_digits=12, decimal_places=2, min_value=Decimal("0.01"),
+        required=False, label="Sale price (BDT) — optional",
+        help_text="Must be lower than the regular price. Leave empty for no discount.",
+    )
     initial_stock = forms.IntegerField(required=False, min_value=0, max_value=100_000, label="Initial stock", help_text="New products only. Leave blank for zero; edit stock separately after saving.")
     # Backward compatibility for existing single-image form submissions. Not shown in the V8 UI.
     image = forms.ImageField(required=False)
@@ -53,12 +71,14 @@ class ProductForm(forms.Form):
                 "name": product.name,
                 "category": product.category_id,
                 "brand": product.brand_id,
+                "new_brand_name": "",
                 "short_description": product.short_description,
                 "description": product.description,
                 "highlights": product.highlights,
                 "specifications_text": "\n".join(f"{key}: {value}" for key, value in (product.specifications or {}).items()),
                 "sku": variant.sku if variant else "",
-                "price_bdt": product.bdt_price,
+                "price_bdt": product.bdt_compare_at_price or product.bdt_price,
+                "sale_price_bdt": product.bdt_price if product.bdt_compare_at_price else None,
             }
 
     def clean_highlights(self):
@@ -83,6 +103,21 @@ class ProductForm(forms.Form):
                 raise forms.ValidationError("Specification names must be unique.")
             specs[key] = value
         return specs
+
+    def clean(self):
+        cleaned = super().clean()
+        brand = cleaned.get("brand")
+        new_name = (cleaned.get("new_brand_name") or "").strip()
+        if brand and new_name:
+            self.add_error("new_brand_name", "Select an existing brand OR type a new name, not both.")
+        if new_name and not any(character.isalnum() for character in new_name):
+            self.add_error("new_brand_name", "Enter a recognizable brand name.")
+
+        regular = cleaned.get("price_bdt")
+        sale = cleaned.get("sale_price_bdt")
+        if regular is not None and sale is not None and sale >= regular:
+            self.add_error("sale_price_bdt", "Sale price must be lower than the regular price.")
+        return cleaned
 
     def clean_sku(self):
         sku = self.cleaned_data["sku"].strip().upper()
