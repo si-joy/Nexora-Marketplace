@@ -313,3 +313,46 @@ def test_order_creation_rejects_replay_token_from_another_user(order_context):
     assert Order.objects.count() == 1
     stock.refresh_from_db()
     assert stock.reserved_quantity == 1
+
+
+@pytest.mark.django_db
+def test_checkout_rejects_price_change_since_customer_viewed_quote(client, order_context):
+    buyer, _, _, _, _, variant, price, stock = order_context
+    client.force_login(buyer)
+    checkout_url = reverse("orders:checkout")
+    page = client.get(checkout_url + f"?variant={variant.pk}&quantity=2")
+    assert page.status_code == 200
+    token = client.session["order_checkout_token"]
+    price.amount = Decimal("675.00")
+    price.save(update_fields=["amount"])
+    response = client.post(checkout_url, {
+        **ADDRESS, "checkout_token": token,
+        "variant": str(variant.pk), "quantity": "2", "agree": "on",
+    })
+    assert response.status_code == 200
+    assert b"prices changed" in response.content.lower()
+    assert not Order.objects.exists()
+    stock.refresh_from_db()
+    assert stock.reserved_quantity == 0
+
+
+@pytest.mark.django_db
+def test_checkout_rejects_changed_cart_quantity_since_quote(client, order_context):
+    buyer, _, _, _, _, variant, _, stock = order_context
+    client.force_login(buyer)
+    cart = Cart.objects.create(user=buyer)
+    line = CartItem.objects.create(cart=cart, variant=variant, quantity=1)
+    checkout_url = reverse("orders:checkout")
+    page = client.get(checkout_url)
+    assert page.status_code == 200
+    token = client.session["order_checkout_token"]
+    line.quantity = 2
+    line.save(update_fields=["quantity"])
+    response = client.post(checkout_url, {
+        **ADDRESS, "checkout_token": token, "agree": "on",
+    })
+    assert response.status_code == 200
+    assert b"bag or prices changed" in response.content
+    assert Order.objects.count() == 0
+    stock.refresh_from_db()
+    assert stock.reserved_quantity == 0
