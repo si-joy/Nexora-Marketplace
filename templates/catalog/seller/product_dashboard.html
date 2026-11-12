@@ -7,12 +7,12 @@
     <a href="{% url 'catalog:seller_product_create' %}" class="rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-on-primary hover:bg-primary-hover">+ Add product</a>
   </div>
   <div class="mt-8 rounded-2xl border border-line bg-surface p-4 sm:p-6">
-    <div class="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 class="font-extrabold">Product management</h2><a href="{% url 'vendors:dashboard' %}" class="text-sm font-bold text-primary hover:underline">← Seller overview</a></div>
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 class="font-extrabold">Product management</h2><div class="flex flex-wrap items-center gap-3"><a href="{% url 'catalog:marketplace_list' %}" class="text-sm font-bold text-primary hover:underline">Browse approved listings</a><a href="{% url 'vendors:dashboard' %}" class="text-sm font-bold text-primary hover:underline">← Seller overview</a></div></div>
     {% if products %}<div class="space-y-3">{% for product in products %}
     <div class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface-soft p-4">
       <div class="flex min-w-0 items-center gap-4">
         {% with picture=product.primary_image %}{% if picture %}<img src="{{ picture.image.url }}" alt="{{ picture.alt_text }}" class="size-16 rounded-xl border border-line bg-surface object-cover" />{% else %}<div class="flex size-16 items-center justify-center rounded-xl border border-line bg-surface text-sm font-bold text-muted">No photo</div>{% endif %}{% endwith %}
-        <div><a class="font-extrabold text-foreground hover:text-primary" href="{% url 'catalog:seller_product_edit' product.pk %}">{{ product.name }}</a><p class="mt-1 text-xs text-muted">{{ product.category.name }} · {{ product.variants.first.sku }}</p><p class="mt-1 text-sm font-bold text-foreground">{% if product.bdt_price %}৳{{ product.bdt_price|floatformat:2 }}{% else %}No price{% endif %}</p></div>
+        <div class="min-w-0"><a class="break-words font-extrabold text-foreground hover:text-primary" href="{% url 'catalog:seller_product_edit' product.pk %}">{{ product.name }}</a><p class="mt-1 text-xs text-muted">{{ product.category.name }} · {{ product.variants.first.sku }}</p><p class="mt-1 text-sm font-bold text-foreground">{% if product.bdt_price %}৳{{ product.bdt_price|floatformat:2 }}{% else %}No price{% endif %}</p></div>
       </div>
       <div class="flex flex-wrap items-center gap-3"><span class="rounded-full border border-line px-3 py-1.5 text-xs font-bold text-muted">{{ product.get_status_display }}</span><a href="{% url 'catalog:seller_product_edit' product.pk %}" class="rounded-lg bg-surface px-4 py-2 text-sm font-bold text-primary hover:bg-background">Edit →</a></div>
     </div>
