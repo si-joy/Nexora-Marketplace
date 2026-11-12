@@ -90,7 +90,7 @@
               <button type="button" data-real-qty-plus class="flex size-11 items-center justify-center text-xl font-bold text-foreground hover:bg-line" aria-label="Increase quantity">+</button>
             </div>
           </div>
-          <button type="button" data-add-real-bag data-detail-quantity data-variant-id="{{ variant.pk }}" class="mt-4 flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-on-primary hover:bg-primary-hover">Add to bag</button>
+          <div class="mt-4 flex flex-wrap gap-3"><a data-direct-buy href="{% url 'orders:checkout' %}?variant={{ variant.pk }}&quantity=1" class="flex min-h-12 min-w-0 flex-1 items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-on-primary hover:bg-primary-hover">Buy now</a><button type="button" data-add-real-bag data-detail-quantity data-variant-id="{{ variant.pk }}" class="flex min-h-12 min-w-0 flex-1 items-center justify-center rounded-xl border border-primary px-5 py-3 text-sm font-extrabold text-primary hover:bg-surface-soft">Add to bag</button></div>
           {% else %}
           <button type="button" disabled class="w-full cursor-not-allowed rounded-xl bg-surface-soft px-5 py-3.5 text-sm font-bold text-muted">Currently unavailable</button>
           {% endif %}
