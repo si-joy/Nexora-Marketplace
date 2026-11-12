@@ -1,98 +1,131 @@
 {% extends 'base.html' %}
 {% block title %}{{ product.name }} | Nexora Marketplace{% endblock %}
 {% block content %}
-<section class="mx-auto max-w-7xl px-4 pb-20 pt-10 sm:px-6 xl:px-8">
-  <a href="{% url 'catalog:marketplace_list' %}" class="text-sm font-bold text-primary hover:underline">← Marketplace</a>
+<section class="mx-auto max-w-7xl px-4 pb-20 pt-7 sm:px-6 xl:px-8">
+  <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">
+    <a href="{% url 'catalog:marketplace_list' %}" class="hover:text-primary">Marketplace</a>
+    <span aria-hidden="true">/</span>
+    <span>{{ product.category.name }}</span>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page" class="max-w-[20rem] truncate text-foreground">{{ product.name }}</span>
+  </nav>
 
-  <div data-real-product class="mt-7 grid gap-8 lg:grid-cols-[minmax(0,1.03fr)_minmax(0,.97fr)] lg:gap-14">
-    <div data-product-gallery class="grid gap-4 lg:grid-cols-[88px_minmax(0,1fr)] lg:items-start">
-      <div class="order-2 flex gap-3 overflow-x-auto pb-2 scrollbar-none lg:order-1 lg:flex-col lg:overflow-visible lg:pb-0">
-        {% for picture in gallery %}
-          <button type="button" data-gallery-thumb data-index="{{ forloop.counter0 }}" data-src="{{ picture.image.url }}" data-alt="{{ picture.alt_text|default:product.name }}" class="product-gallery-thumb {% if forloop.first %}is-active{% endif %}" aria-label="View product image {{ forloop.counter }}">
-            <span class="product-gallery-thumb__photo"><img src="{{ picture.image.url }}" alt="" class="h-full w-full object-cover"></span>
-          </button>
-        {% endfor %}
+  <div data-real-product class="mt-7 grid items-start gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,.92fr)] lg:gap-12">
+    <section data-product-gallery aria-label="Product gallery" class="min-w-0">
+      <div data-gallery-stage class="product-gallery-stage product-gallery-stage--photo aspect-[4/3] min-h-0 w-full p-4 sm:p-7">
+        {% if gallery %}
+          <img data-gallery-main-image src="{{ gallery.0.image.url }}" alt="{{ gallery.0.alt_text|default:product.name }}" width="720" height="540" fetchpriority="high" class="h-full max-h-[490px] w-full object-contain">
+          {% if gallery|length > 1 %}
+            <button type="button" data-gallery-nav="prev" class="gallery-nav gallery-nav--prev" aria-label="Previous image">‹</button>
+            <button type="button" data-gallery-nav="next" class="gallery-nav gallery-nav--next" aria-label="Next image">›</button>
+          {% endif %}
+        {% else %}
+          <p class="text-sm font-semibold text-muted">Product image unavailable</p>
+        {% endif %}
       </div>
-      <div class="order-1 lg:order-2">
-        <div data-gallery-stage class="product-gallery-stage product-gallery-stage--photo">
-          <button type="button" data-gallery-nav="prev" class="gallery-nav gallery-nav--prev" aria-label="Previous image">‹</button>
-          {% if gallery %}<img data-gallery-main-image src="{{ gallery.0.image.url }}" alt="{{ gallery.0.alt_text|default:product.name }}" class="h-full max-h-[560px] w-full object-contain">{% endif %}
-          <button type="button" data-gallery-nav="next" class="gallery-nav gallery-nav--next" aria-label="Next image">›</button>
+      {% if gallery %}
+        <div class="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-none" aria-label="Choose product image">
+          {% for picture in gallery %}
+            <button type="button" data-gallery-thumb data-index="{{ forloop.counter0 }}" data-src="{{ picture.image.url }}" data-alt="{{ picture.alt_text|default:product.name }}" class="product-gallery-thumb h-[78px] w-[78px] sm:h-[90px] sm:w-[90px] {% if forloop.first %}is-active{% endif %}" aria-label="View image {{ forloop.counter }} of {{ gallery|length }}" {% if forloop.first %}aria-current="true"{% endif %}>
+              <span class="product-gallery-thumb__photo"><img src="{{ picture.image.url }}" loading="lazy" alt="" width="90" height="90" class="h-full w-full object-cover"></span>
+            </button>
+          {% endfor %}
         </div>
-        <div class="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-[0.2em] text-secondary">Product gallery</p>
-            <p class="mt-1 text-sm text-muted">Preview up to {{ gallery|length }} seller-uploaded images.</p>
-          </div>
-          <span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-bold text-foreground">{{ gallery|length }} photos</span>
-        </div>
-      </div>
-    </div>
+        <p class="mt-2 text-xs text-muted">{{ gallery|length }} product photo{{ gallery|length|pluralize }} · Select an image to preview</p>
+      {% endif %}
+    </section>
 
-    <div class="space-y-5">
+    <section class="min-w-0">
       <div class="flex flex-wrap items-center gap-2">
-        <span class="section-overline">{{ product.category.name }} · Verified seller</span>
-        {% if product.brand %}<span class="rounded-full bg-surface-soft px-3 py-1 text-[11px] font-bold text-primary">{{ product.brand.name }}</span>{% endif %}
-        <span class="rounded-full bg-surface-soft px-3 py-1 text-[11px] font-bold text-muted">Real listing</span>
+        <span class="section-overline">{{ product.category.name }}</span>
+        {% if product.brand %}<span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-bold text-primary">{{ product.brand.name }}</span>{% endif %}
+        <span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-bold text-secondary">Approved seller</span>
       </div>
-      <div>
-        <h1 class="text-3xl font-black tracking-tight sm:text-5xl">{{ product.name }}</h1>
-        <p class="mt-3 max-w-2xl text-base leading-8 text-muted">{{ product.short_description|default:'Seller-approved product listing for the live marketplace.' }}</p>
-      </div>
+      <h1 class="mt-4 text-3xl font-black leading-tight tracking-tight text-foreground sm:text-4xl">{{ product.name }}</h1>
+      {% if product.short_description %}<p class="mt-3 text-sm leading-7 text-muted sm:text-base">{{ product.short_description }}</p>{% endif %}
 
-      <div class="rounded-[28px] border border-line bg-surface p-5 shadow-[0_18px_45px_var(--app-shadow)] sm:p-6">
-        <div class="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
+      <div class="mt-7 rounded-[24px] border border-line bg-surface p-5 shadow-[0_16px_35px_var(--app-shadow)] sm:p-6">
+        <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Starting price</p>
-            <p class="mt-1 text-3xl font-black text-foreground sm:text-4xl">৳{{ product.bdt_price|floatformat:2 }}</p>
+            <p class="text-xs font-bold uppercase tracking-widest text-muted">Price</p>
+            <p class="mt-2 text-3xl font-black tracking-tight text-foreground">{% if product.bdt_price != None %}৳{{ product.bdt_price|floatformat:2 }}{% else %}Unavailable{% endif %}</p>
           </div>
           {% with variant=product.shop_variant %}
             {% if variant and variant.available_stock > 0 %}
-              <div class="rounded-2xl bg-surface-soft px-4 py-3 text-sm font-bold text-success">{{ variant.available_stock }} units in stock</div>
+              <span class="rounded-xl bg-surface-soft px-3 py-2 text-xs font-bold text-success">● In stock · {{ variant.available_stock }} available</span>
             {% else %}
-              <div class="rounded-2xl bg-surface-soft px-4 py-3 text-sm font-bold text-danger">Currently out of stock</div>
+              <span class="rounded-xl bg-surface-soft px-3 py-2 text-xs font-bold text-danger">● Out of stock</span>
             {% endif %}
           {% endwith %}
         </div>
+        <div class="my-5 border-t border-line"></div>
+        {% with variant=product.shop_variant %}
+          {% if variant and variant.available_stock > 0 and product.bdt_price != None %}
+            <button type="button" data-add-real-bag data-variant-id="{{ variant.id }}" class="w-full rounded-xl bg-primary px-6 py-4 text-sm font-extrabold text-on-primary transition hover:bg-primary-hover">Add to bag</button>
+          {% else %}
+            <button type="button" disabled class="w-full cursor-not-allowed rounded-xl bg-surface-soft px-6 py-4 text-sm font-bold text-muted">Currently unavailable</button>
+          {% endif %}
+        {% endwith %}
+        <p class="mt-3 text-center text-xs leading-5 text-muted">Cart saving is available; checkout and payment are not enabled yet.</p>
+      </div>
 
-        <div class="mt-5 grid gap-3 sm:grid-cols-3">
-          <div class="rounded-2xl bg-surface-soft p-4"><p class="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">Store</p><p class="mt-1 font-bold">{{ product.store.name }}</p></div>
-          <div class="rounded-2xl bg-surface-soft p-4"><p class="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">Category</p><p class="mt-1 font-bold">{{ product.category.name }}</p></div>
-          <div class="rounded-2xl bg-surface-soft p-4"><p class="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">Gallery</p><p class="mt-1 font-bold">{{ gallery|length }} image{{ gallery|length|pluralize }}</p></div>
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-5">
+        <div>
+          <p class="text-xs font-semibold text-muted">Sold by</p>
+          <p class="mt-1 text-base font-extrabold text-foreground">{{ product.store.name }}</p>
         </div>
-
-        <div class="mt-5 space-y-3">
-          <h2 class="text-sm font-extrabold tracking-tight text-foreground">Product highlights</h2>
-          <ul class="space-y-3">
-            {% for item in highlights %}
-              <li class="flex items-start gap-3 rounded-2xl bg-surface-soft px-4 py-3 text-sm text-muted"><span class="mt-0.5 text-secondary">✦</span><span>{{ item }}</span></li>
+        <a href="{% url 'catalog:marketplace_store' product.store.slug %}" class="rounded-xl border border-line bg-surface-soft px-4 py-2.5 text-xs font-bold text-primary hover:border-primary">Visit store →</a>
+      </div>
+      {% if highlights %}
+        <div class="mt-5 rounded-2xl bg-surface-soft p-5">
+          <h2 class="text-sm font-extrabold text-foreground">Quick highlights</h2>
+          <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
+            {% for item in highlights|slice:':3' %}
+              <li class="flex items-start gap-2"><span class="text-secondary" aria-hidden="true">✓</span><span>{{ item|truncatechars:110 }}</span></li>
             {% endfor %}
           </ul>
         </div>
-
-        {% with variant=product.shop_variant %}
-          {% if variant and product.bdt_price %}
-            {% if variant.available_stock > 0 %}
-              <div class="mt-6 flex flex-wrap gap-3"><button type="button" data-add-real-bag data-variant-id="{{ variant.id }}" class="flex-1 rounded-2xl bg-primary px-6 py-4 text-sm font-extrabold text-on-primary hover:bg-primary-hover">Add to bag</button><a href="{% url 'catalog:marketplace_store' product.store.slug %}" class="rounded-2xl border border-line bg-surface px-5 py-4 text-sm font-extrabold text-primary hover:bg-surface-soft">Shop this store</a></div>
-            {% else %}
-              <div class="mt-6 flex flex-wrap gap-3"><a href="{% url 'catalog:marketplace_store' product.store.slug %}" class="rounded-2xl border border-line bg-surface px-5 py-4 text-sm font-extrabold text-primary hover:bg-surface-soft">Browse seller store</a></div>
-            {% endif %}
-          {% endif %}
-        {% endwith %}
-      </div>
-
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div class="rounded-2xl border border-line bg-surface p-5">
-          <p class="text-sm font-extrabold text-foreground">About this product</p>
-          <p class="mt-3 whitespace-pre-line text-sm leading-7 text-muted">{{ product.description|default:'Additional product details will be provided by the seller.' }}</p>
-        </div>
-        <div class="rounded-2xl border border-line bg-surface p-5">
-          <p class="text-sm font-extrabold text-foreground">Marketplace note</p>
-          <p class="mt-3 text-sm leading-7 text-muted">Real marketplace products can be added to your account cart. Checkout, order placement and payment are coming in the next phase.</p>
-          <div class="mt-4 rounded-2xl bg-surface-soft p-4 text-sm text-muted">Adding to cart does not reserve stock yet.</div>
-        </div>
-      </div>
-    </div>
+      {% endif %}
+    </section>
   </div>
+
+  <section class="mt-12 border-t border-line pt-10 sm:mt-16" aria-labelledby="product-information-heading">
+    <p class="section-overline">Product information</p>
+    <h2 id="product-information-heading" class="mt-2 text-2xl font-black tracking-tight text-foreground sm:text-3xl">Everything you need to know</h2>
+    <div class="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]">
+      <article class="min-w-0 rounded-[24px] border border-line bg-surface p-6 sm:p-8">
+        <h3 class="text-lg font-extrabold text-foreground">Description</h3>
+        {% if product.description %}
+          {% if product.description|length > 550 %}
+            <p class="mt-4 whitespace-pre-line text-sm leading-8 text-muted">{{ product.description|truncatechars:550 }}</p>
+            <details class="mt-4 border-t border-line pt-4">
+              <summary class="cursor-pointer text-sm font-bold text-primary hover:underline">Read full description</summary>
+              <div class="mt-4 whitespace-pre-line text-sm leading-8 text-muted">{{ product.description }}</div>
+            </details>
+          {% else %}
+            <div class="mt-4 whitespace-pre-line text-sm leading-8 text-muted">{{ product.description }}</div>
+          {% endif %}
+        {% else %}
+          <p class="mt-4 text-sm text-muted">The seller has not provided a description yet.</p>
+        {% endif %}
+      </article>
+      <aside class="space-y-5">
+        <section class="rounded-[24px] border border-line bg-surface p-6">
+          <h3 class="text-base font-extrabold text-foreground">Specifications</h3>
+          <dl class="mt-5 divide-y divide-line text-sm">
+            <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Category</dt><dd class="text-right font-semibold text-foreground">{{ product.category.name }}</dd></div>
+            {% if product.brand %}<div class="flex justify-between gap-4 py-3"><dt class="text-muted">Brand</dt><dd class="text-right font-semibold text-foreground">{{ product.brand.name }}</dd></div>{% endif %}
+            {% with variant=product.shop_variant %}{% if variant %}<div class="flex justify-between gap-4 py-3"><dt class="text-muted">SKU</dt><dd class="text-right font-semibold text-foreground">{{ variant.sku }}</dd></div>{% endif %}{% endwith %}
+            <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Photos</dt><dd class="font-semibold text-foreground">{{ gallery|length }}</dd></div>
+            <div class="flex justify-between gap-4 py-3"><dt class="text-muted">Seller</dt><dd class="text-right font-semibold text-foreground">{{ product.store.name }}</dd></div>
+          </dl>
+        </section>
+        <div class="rounded-[24px] bg-surface-soft p-6">
+          <h3 class="font-extrabold text-foreground">Order information</h3>
+          <p class="mt-3 text-sm leading-7 text-muted">Adding an item to your bag does not reserve stock. Checkout and payment are coming in a later phase.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
 </section>
 {% endblock %}
