@@ -16,6 +16,8 @@ class ProductForm(forms.Form):
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 6}))
     sku = forms.CharField(max_length=80)
     price_bdt = forms.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.01"))
+    # Backward compatibility for existing single-image form submissions. Not shown in the V8 UI.
+    image = forms.ImageField(required=False)
     image_1 = forms.ImageField(required=False, help_text="Main image · JPEG, PNG or WEBP · up to 5 MB.")
     image_2 = forms.ImageField(required=False)
     image_3 = forms.ImageField(required=False)
@@ -79,8 +81,7 @@ class ProductForm(forms.Form):
     def clean(self):
         cleaned = super().clean()
         images = []
-        for index in range(1, 6):
-            name = f"image_{index}"
+        for name in ("image", "image_1", "image_2", "image_3", "image_4", "image_5"):
             uploaded = cleaned.get(name)
             if uploaded:
                 cleaned[name] = self._clean_uploaded_image(uploaded)
