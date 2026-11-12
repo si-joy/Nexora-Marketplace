@@ -1,5 +1,5 @@
-/* Nexora demo storefront: shared cart drawer + thumbnail-to-cart animation.
-   Cart and wishlist use the existing browser storage keys. No real checkout. */
+/* Nexora shared storefront: account-backed demo/marketplace saved items,
+   cart drawer and thumbnail animation. No real checkout. */
 (() => {
   "use strict";
 
@@ -516,6 +516,14 @@
   renderCart();
   refreshSavedItems();
   refreshRealCart();
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      // An account may have signed out in a different tab.
+      refreshSavedItems();
+      refreshRealCart();
+    }
+  });
 
   window.addEventListener("pageshow", (event) => {
     if (event.persisted) {
