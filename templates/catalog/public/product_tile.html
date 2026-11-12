@@ -1,4 +1,56 @@
-<article class="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface transition hover:border-primary/40 hover:shadow-[0_15px_40px_var(--app-shadow)]">
-  <a href="{% url 'catalog:marketplace_detail' product.slug %}" class="block aspect-[4/3] overflow-hidden bg-surface-soft">{% with picture=product.primary_image %}{% if picture %}<img src="{{ picture.image.url }}" alt="{{ picture.alt_text|default:product.name }}" loading="lazy" class="h-full w-full object-contain transition duration-300 group-hover:scale-105">{% endif %}{% endwith %}</a>
-  <div class="flex flex-1 flex-col p-3.5 sm:p-5"><p class="text-[11px] font-bold uppercase tracking-wider text-muted">{{ product.category.name }}</p><h3 class="mt-2 min-h-10 text-sm font-extrabold leading-5 sm:text-base"><a class="hover:text-primary" href="{% url 'catalog:marketplace_detail' product.slug %}">{{ product.name }}</a></h3><p class="mt-1 truncate text-xs text-muted">{{ product.store.name }}</p><p class="mt-auto pt-4 text-lg font-black text-foreground">{% if product.bdt_price %}৳{{ product.bdt_price|floatformat:2 }}{% else %}Price unavailable{% endif %}</p><a href="{% url 'catalog:marketplace_detail' product.slug %}" class="mt-4 block min-h-10 rounded-xl border border-primary px-4 py-2.5 text-center text-xs font-bold text-primary hover:bg-surface-soft">View product →</a></div>
+<article data-real-product class="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface transition hover:border-primary/40 hover:shadow-[0_15px_40px_var(--app-shadow)]">
+  <a href="{% url 'catalog:marketplace_detail' product.slug %}" class="block aspect-[4/3] overflow-hidden bg-surface-soft" aria-label="View {{ product.name }} details">
+    {% with picture=product.primary_image %}
+      {% if picture %}
+        <img src="{{ picture.image.url }}" alt="{{ picture.alt_text|default:product.name }}" loading="lazy" class="h-full w-full object-contain transition duration-300 group-hover:scale-105">
+      {% else %}
+        <span class="flex h-full items-center justify-center text-xs font-semibold text-muted">Image coming soon</span>
+      {% endif %}
+    {% endwith %}
+  </a>
+  <div class="flex flex-1 flex-col p-3.5 sm:p-5">
+    <p class="text-[11px] font-bold uppercase tracking-wider text-muted">{{ product.category.name }}</p>
+    <h3 class="mt-2 min-h-10 text-sm font-extrabold leading-5 sm:text-base">
+      <a class="hover:text-primary" href="{% url 'catalog:marketplace_detail' product.slug %}">{{ product.name }}</a>
+    </h3>
+    <p class="mt-1 truncate text-xs text-muted">{{ product.store.name }}</p>
+    <p class="mt-auto pt-4 text-lg font-black text-foreground">
+      {% if product.bdt_price != None %}৳{{ product.bdt_price|floatformat:2 }}{% else %}Price unavailable{% endif %}
+    </p>
+    {% with variant=product.default_sellable_variant %}
+      <div class="mt-3 grid grid-cols-[minmax(0,1fr)_44px] gap-2">
+        <button type="button" disabled aria-label="Buy now for {{ product.name }} is coming soon" title="Checkout coming soon"
+                class="flex min-h-11 min-w-0 cursor-not-allowed items-center justify-center rounded-xl border border-line bg-surface-soft px-2 text-xs font-extrabold text-muted">
+          Buy now
+        </button>
+        {% if variant and variant.available_stock > 0 and product.bdt_price != None %}
+          <button type="button" data-add-real-bag data-variant-id="{{ variant.pk }}"
+                  aria-label="Add {{ product.name }} to cart" title="Add to cart"
+                  class="flex size-11 items-center justify-center rounded-xl bg-primary text-on-primary transition hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-5" aria-hidden="true">
+              <path d="M4.5 8h15l-1.1 12H5.6L4.5 8Z" stroke-linejoin="round"/>
+              <path d="M9 9V6a3 3 0 0 1 6 0v3" stroke-linecap="round"/>
+              <path d="M12 12v5M9.5 14.5h5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        {% else %}
+          <button type="button" disabled aria-label="Add to cart unavailable for {{ product.name }}" title="Out of stock"
+                  class="flex size-11 cursor-not-allowed items-center justify-center rounded-xl border border-line bg-surface-soft text-muted">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-5" aria-hidden="true">
+              <path d="M4.5 8h15l-1.1 12H5.6L4.5 8Z" stroke-linejoin="round"/>
+              <path d="M9 9V6a3 3 0 0 1 6 0v3" stroke-linecap="round"/>
+              <path d="M12 12v5M9.5 14.5h5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        {% endif %}
+      </div>
+      <p class="mt-2 text-[11px] leading-4 text-muted">
+        {% if variant and variant.available_stock > 0 and product.bdt_price != None %}
+          Checkout coming soon · {{ variant.available_stock }} in stock
+        {% else %}
+          Currently unavailable
+        {% endif %}
+      </p>
+    {% endwith %}
+  </div>
 </article>
