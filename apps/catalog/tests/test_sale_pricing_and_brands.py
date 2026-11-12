@@ -66,6 +66,11 @@ def test_create_sale_price_is_cart_price_and_original_is_crossed_out(
     assert "<del" in html
     assert "৳950.00" in html
     assert "Acme Beauty" in html
+    # The same live listing must fill the entire card frame without letterboxing.
+    listing_html = client.get(reverse("catalog:marketplace_list")).content.decode()
+    assert 'aspect-[4/3] overflow-hidden' in listing_html
+    assert 'absolute inset-0 h-full w-full object-cover object-center' in listing_html
+
 
 
 @pytest.mark.django_db
