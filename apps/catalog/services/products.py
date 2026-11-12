@@ -71,6 +71,8 @@ def create_product(*, seller, cleaned):
         brand=cleaned.get("brand"),
         short_description=cleaned.get("short_description", ""),
         description=cleaned.get("description", ""),
+        highlights=cleaned.get("highlights", ""),
+        specifications=cleaned.get("specifications_text", {}),
     )
     variant = ProductVariant.objects.create(product=product, sku=cleaned["sku"].strip().upper(), is_default=True)
     ProductVariantPrice.objects.create(variant=variant, currency=_bdt(), amount=cleaned["price_bdt"])
@@ -96,12 +98,14 @@ def update_product(*, seller, product_id, cleaned):
     product.brand = cleaned.get("brand")
     product.short_description = cleaned.get("short_description", "")
     product.description = cleaned.get("description", "")
+    product.highlights = cleaned.get("highlights", "")
+    product.specifications = cleaned.get("specifications_text", {})
     product.status = Product.Status.DRAFT  # Edits to published items require re-approval.
     product.reviewed_by = None
     product.moderation_note = ""
     product.published_at = None
     product.save(update_fields=[
-        "name", "category", "brand", "short_description", "description", "status",
+        "name", "category", "brand", "short_description", "description", "highlights", "specifications", "status",
         "reviewed_by", "moderation_note", "published_at", "updated_at",
     ])
     variant = ProductVariant.objects.select_for_update().get(product=product, is_default=True)
