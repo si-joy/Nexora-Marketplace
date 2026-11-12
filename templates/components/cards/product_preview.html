@@ -15,9 +15,21 @@
       <span class="text-lg font-extrabold tracking-tight text-foreground">৳{{ product.price }}</span>
       {% if product.old_price %}<del class="mb-0.5 text-xs text-muted">৳{{ product.old_price }}</del>{% endif %}
     </div>
-    <button type="button" data-add-bag data-item-id="{{ product.id }}" data-item-name="{{ product.name }}" class="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-primary bg-primary text-xs font-bold text-on-primary transition hover:bg-primary-hover">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-      Add to bag
-    </button>
+    <div class="mt-4 grid grid-cols-[minmax(0,1fr)_44px] gap-2">
+      <button type="button" disabled aria-label="Buy now for {{ product.name }} is coming soon" title="Checkout coming soon"
+              class="flex min-h-11 min-w-0 cursor-not-allowed items-center justify-center rounded-xl border border-line bg-surface-soft px-2 text-xs font-extrabold text-muted">
+        Buy now
+      </button>
+      <button type="button" data-add-bag data-item-id="{{ product.id }}" data-item-name="{{ product.name }}"
+              aria-label="Add {{ product.name }} to demo cart" title="Add to cart"
+              class="flex size-11 items-center justify-center rounded-xl bg-primary text-on-primary transition hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-5" aria-hidden="true">
+          <path d="M4.5 8h15l-1.1 12H5.6L4.5 8Z" stroke-linejoin="round"/>
+          <path d="M9 9V6a3 3 0 0 1 6 0v3" stroke-linecap="round"/>
+          <path d="M12 12v5M9.5 14.5h5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <p class="mt-2 text-[11px] leading-4 text-muted">Demo cart · Checkout coming soon</p>
   </div>
 </article>
