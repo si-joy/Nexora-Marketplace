@@ -42,6 +42,7 @@ def product_edit(request, pk):
         Product.objects.filter(store=store).prefetch_related("images", "variants__prices__currency"), pk=pk
     )
     form = ProductForm(request.POST or None, request.FILES or None, product=product)
+    form.fields.pop("initial_stock", None)
     if request.method == "POST" and form.is_valid():
         try:
             update_product(seller=request.user, product_id=product.pk, cleaned=form.cleaned_data)
