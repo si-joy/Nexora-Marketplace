@@ -57,7 +57,7 @@ def checkout_preview(*, user, variant_id=None, quantity=1):
 
 
 @transaction.atomic
-def place_order(*, user, token, details, variant_id=None, quantity=1):
+def place_order(*, user, token, details, variant_id=None, quantity=1, expected_total=None):
     if not user.is_authenticated or not user.is_active:
         raise PermissionDenied("Sign in before placing an order.")
     try:
@@ -108,6 +108,8 @@ def place_order(*, user, token, details, variant_id=None, quantity=1):
             raise ValidationError(f"Not enough stock for {variant.product.name}.")
         total += price * count
         lines.append((variant, count, price))
+    if expected_total is not None and total != Decimal(str(expected_total)):
+        raise ValidationError("Prices changed during checkout. Reload checkout to review the latest total.")
     order = Order.objects.create(
         buyer=user, checkout_token=key, source=source, subtotal_bdt=total,
         contact_name=details["contact_name"], phone=details["phone"],
