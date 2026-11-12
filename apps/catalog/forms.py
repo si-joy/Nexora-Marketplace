@@ -14,7 +14,7 @@ class ProductForm(forms.Form):
     brand = forms.ModelChoiceField(
         queryset=Brand.objects.none(), required=False,
         label="Existing brand",
-        help_text="Choose a brand already in the catalog, or enter a new one below.",
+        help_text="",
     )
     new_brand_name = forms.CharField(
         max_length=120, required=False, label="Create a new brand",
