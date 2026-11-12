@@ -54,7 +54,7 @@ class ProductForm(forms.Form):
                 "short_description": product.short_description,
                 "description": product.description,
                 "highlights": product.highlights,
-                "specifications_text": "\\n".join(f"{key}: {value}" for key, value in (product.specifications or {}).items()),
+                "specifications_text": "\n".join(f"{key}: {value}" for key, value in (product.specifications or {}).items()),
                 "sku": variant.sku if variant else "",
                 "price_bdt": product.bdt_price,
             }
@@ -64,7 +64,7 @@ class ProductForm(forms.Form):
         lines = [line.strip().lstrip("•- ").strip() for line in raw.splitlines() if line.strip()]
         if len(lines) > 6 or any(len(line) > 180 for line in lines):
             raise forms.ValidationError("Enter at most 6 highlights, each up to 180 characters.")
-        return "\\n".join(lines)
+        return "\n".join(lines)
 
     def clean_specifications_text(self):
         raw = self.cleaned_data.get("specifications_text", "")
