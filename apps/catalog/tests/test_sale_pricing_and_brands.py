@@ -9,7 +9,7 @@ from apps.catalog.models import Brand, ProductVariantPrice
 from apps.catalog.services.products import create_product, update_product
 from apps.shopping.services import _price
 
-from .test_real_catalog import approved_seller, category, cleaned
+from .test_real_catalog import approved_seller, category, cleaned, jpeg_photo
 
 
 @pytest.mark.django_db
@@ -41,10 +41,12 @@ def test_seller_form_rejects_equal_or_higher_sale_and_brand_conflicts(category):
 
 @pytest.mark.django_db
 def test_create_sale_price_is_cart_price_and_original_is_crossed_out(
-    client, approved_seller, category
+    client, approved_seller, category, settings, tmp_path
 ):
+    settings.MEDIA_ROOT = tmp_path / "media"
     seller, _, _ = approved_seller
-    values = cleaned(category)
+    # The card must actually render an uploaded image before checking its CSS.
+    values = cleaned(category, jpeg_photo())
     values["new_brand_name"] = "Acme Beauty"
     values["price_bdt"] = Decimal("950.00")
     values["sale_price_bdt"] = Decimal("650.00")
@@ -68,7 +70,9 @@ def test_create_sale_price_is_cart_price_and_original_is_crossed_out(
     assert "Acme Beauty" in html
     # The same live listing must fill the entire card frame without letterboxing.
     listing_html = client.get(reverse("catalog:marketplace_list")).content.decode()
+    assert product.name in listing_html
     assert 'aspect-[4/3] overflow-hidden' in listing_html
+    assert 'src="' + product.primary_image.image.url + '"' in listing_html
     assert 'absolute inset-0 h-full w-full object-cover object-center' in listing_html
 
 
