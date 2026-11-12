@@ -520,8 +520,8 @@
   window.addEventListener("pageshow", (event) => {
     if (event.persisted) {
       // A restored back/forward page must never expose a previous account.
-      applySavedState({ authenticated: false });
       realCart = { authenticated: false, items: [], item_count: 0, subtotal: "0.00" };
+      applySavedState({ authenticated: false });
       refreshSavedItems();
       refreshRealCart();
     }
