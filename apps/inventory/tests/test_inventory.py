@@ -138,3 +138,39 @@ def test_stock_adjustment_form_rejects_zero_and_fraction():
     assert not StockAdjustmentForm({"delta": 0}).is_valid()
     assert not StockAdjustmentForm({"delta": "1.5"}).is_valid()
     assert StockAdjustmentForm({"delta": "-2", "note": "Damaged"}).is_valid()
+
+
+@pytest.mark.django_db
+def test_product_creation_form_accepts_initial_stock(client, seller_stock):
+    seller, _, category, _, _ = seller_stock
+    client.force_login(seller)
+    response = client.post(reverse("catalog:seller_product_create"), {
+        "name": "Fresh Inventory Listing",
+        "category": category.pk,
+        "brand": "",
+        "short_description": "",
+        "description": "",
+        "sku": "HTTP-STOCK-01",
+        "price_bdt": "1400.00",
+        "initial_stock": "8",
+    })
+    assert response.status_code == 302
+    variant = ProductVariant.objects.get(sku="HTTP-STOCK-01")
+    assert variant.available_stock == 8
+    assert StockMovement.objects.filter(stock__variant=variant, delta=8).count() == 1
+
+
+@pytest.mark.django_db
+def test_product_creation_form_rejects_negative_initial_stock(client, seller_stock):
+    seller, _, category, _, _ = seller_stock
+    client.force_login(seller)
+    response = client.post(reverse("catalog:seller_product_create"), {
+        "name": "Invalid Inventory Listing",
+        "category": category.pk,
+        "brand": "",
+        "sku": "HTTP-STOCK-BAD",
+        "price_bdt": "1400.00",
+        "initial_stock": "-1",
+    })
+    assert response.status_code == 200
+    assert not ProductVariant.objects.filter(sku="HTTP-STOCK-BAD").exists()
