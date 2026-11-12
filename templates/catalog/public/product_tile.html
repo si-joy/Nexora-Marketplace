@@ -31,7 +31,7 @@
         <a href="{% url 'orders:checkout' %}?variant={{ variant.pk }}" class="flex min-h-11 min-w-0 items-center justify-center rounded-xl bg-primary px-2 text-xs font-extrabold text-on-primary hover:bg-primary-hover">Buy now</a>
         {% else %}
         <button type="button" disabled class="flex min-h-11 min-w-0 cursor-not-allowed items-center justify-center rounded-xl border border-line bg-surface-soft px-2 text-xs font-extrabold text-muted">Buy now</button>
-        {% endif %>
+        {% endif %}
         {% if variant and variant.available_stock > 0 and product.bdt_price != None %}
           <button type="button" data-add-real-bag data-variant-id="{{ variant.pk }}"
                   aria-label="Add {{ product.name }} to cart" title="Add to cart"
