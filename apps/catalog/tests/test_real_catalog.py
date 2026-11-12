@@ -182,3 +182,59 @@ def test_demo_product_card_retains_browser_cart_action(client):
     assert b"Buy now" in response.content
     assert b"data-add-bag" in response.content
     assert b"Checkout coming soon" in response.content
+
+
+@pytest.mark.django_db
+def test_seller_uploads_render_on_refined_real_detail(client, approved_seller, category, settings, tmp_path):
+    from apps.inventory.models import Stock
+
+    settings.MEDIA_ROOT = tmp_path / "media"
+    seller, reviewer, _ = approved_seller
+    fields = cleaned(category, jpeg_photo())
+    fields["highlights"] = "Bluetooth audio\n40-hour playback"
+    fields["specifications_text"] = {
+        "Connectivity": "Bluetooth",
+        "Battery": "40 hours",
+    }
+    product = create_product(seller=seller, cleaned=fields)
+    variant = product.variants.get(is_default=True)
+    Stock.objects.create(variant=variant, quantity=8)
+    submit_product(seller=seller, product_id=product.pk)
+    approve_product(reviewer=reviewer, product_id=product.pk)
+    response = client.get(reverse("catalog:marketplace_detail", args=[product.slug]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "Bluetooth audio" in html
+    assert "40-hour playback" in html
+    assert "Connectivity" in html and "Bluetooth" in html
+    assert 'data-gallery-main-image' in html
+    assert 'data-add-real-bag' in html
+    assert 'data-real-qty' in html
+    assert 'data-marketplace-favorite' in html
+    assert "Details & specifications" in html
+    assert response.context["specifications"] == [
+        ("Connectivity", "Bluetooth"), ("Battery", "40 hours"),
+    ]
+
+
+@pytest.mark.django_db
+def test_seller_form_parses_and_validates_highlights_and_specs(category):
+    from apps.catalog.forms import ProductForm
+
+    payload = {
+        "name": "Seller Editable Item", "category": category.pk, "brand": "",
+        "sku": "FORM-SPEC-001", "price_bdt": "350.00",
+        "highlights": "Fast charging\nWater resistant",
+        "specifications_text": "Color: Black\nBattery: 30 hours",
+    }
+    form = ProductForm(data=payload)
+    assert form.is_valid(), form.errors.as_json()
+    assert form.cleaned_data["highlights"].splitlines() == [
+        "Fast charging", "Water resistant"
+    ]
+    assert form.cleaned_data["specifications_text"] == {
+        "Color": "Black", "Battery": "30 hours"
+    }
+    form = ProductForm(data={**payload, "specifications_text": "Bad specification"})
+    assert not form.is_valid()
+    assert "specifications_text" in form.errors
