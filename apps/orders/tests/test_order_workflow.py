@@ -245,3 +245,71 @@ def test_demo_items_do_not_become_real_orders(order_context):
     with pytest.raises(ValidationError, match="empty"):
         place_order(user=buyer, token=str(uuid4()), details=ADDRESS)
     assert Order.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_multi_seller_cart_splits_lines_and_keeps_permissions(order_context):
+    buyer, seller, stranger, store, _, first, _, first_stock = order_context
+    other_seller = User.objects.create_user(email="order-second-seller@example.test", password="ValidPass123!")
+    profile = SellerProfile.objects.create(
+        user=other_seller, business_name="Another seller", contact_phone="01711000000",
+        status=SellerProfile.Status.APPROVED,
+    )
+    other_store = Store.objects.create(
+        seller=profile, name="Another store", slug="another-order-store", status=Store.Status.ACTIVE
+    )
+    category = first.product.category
+    second_product = Product.objects.create(
+        store=other_store, category=category, name="Second seller item",
+        slug="second-seller-item", status=Product.Status.PUBLISHED,
+    )
+    second_variant = ProductVariant.objects.create(
+        product=second_product, sku="ORDER-S-02", is_default=True,
+    )
+    bdt = Currency.objects.get(pk="BDT")
+    ProductVariantPrice.objects.create(
+        variant=second_variant, currency=bdt, amount=Decimal("100.00"),
+    )
+    second_stock = Stock.objects.create(variant=second_variant, quantity=4)
+    cart = Cart.objects.create(user=buyer)
+    CartItem.objects.create(cart=cart, variant=first, quantity=2)
+    CartItem.objects.create(cart=cart, variant=second_variant, quantity=3)
+
+    order = place_order(user=buyer, token=str(uuid4()), details=ADDRESS)
+    assert order.lines.count() == 2
+    assert order.subtotal_bdt == Decimal("1600.00")
+    first_stock.refresh_from_db()
+    second_stock.refresh_from_db()
+    assert first_stock.reserved_quantity == 2
+    assert second_stock.reserved_quantity == 3
+
+    first_line = order.lines.get(store=store)
+    second_line = order.lines.get(store=other_store)
+    with pytest.raises(PermissionDenied):
+        seller_transition(seller=seller, line_id=second_line.id, new_status="processing")
+    seller_transition(seller=other_seller, line_id=second_line.id, new_status="processing")
+    with pytest.raises(PermissionDenied):
+        seller_transition(seller=other_seller, line_id=first_line.id, new_status="processing")
+
+
+@pytest.mark.django_db
+def test_customer_cannot_cancel_item_after_seller_accepts(order_context):
+    buyer, seller, _, _, _, variant, _, stock = order_context
+    line = order_for(buyer, variant).lines.get()
+    seller_transition(seller=seller, line_id=line.id, new_status="processing")
+    with pytest.raises(ValidationError):
+        customer_cancel(user=buyer, line_id=line.id)
+    stock.refresh_from_db()
+    assert stock.reserved_quantity == 2
+
+
+@pytest.mark.django_db
+def test_order_creation_rejects_replay_token_from_another_user(order_context):
+    buyer, _, stranger, _, _, variant, _, stock = order_context
+    token = str(uuid4())
+    order = place_order(user=buyer, token=token, details=ADDRESS, variant_id=variant.pk)
+    with pytest.raises(ValidationError, match="token"):
+        place_order(user=stranger, token=token, details=ADDRESS, variant_id=variant.pk)
+    assert Order.objects.count() == 1
+    stock.refresh_from_db()
+    assert stock.reserved_quantity == 1
