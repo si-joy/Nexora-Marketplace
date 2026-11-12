@@ -23,4 +23,8 @@ def dashboard(request):
     from apps.vendors.models import SellerProfile
 
     seller_profile = SellerProfile.objects.filter(user=request.user).first()
-    return render(request, "accounts/dashboard.html", {"seller_profile": seller_profile})
+    from apps.orders.models import Order
+    order_count = Order.objects.filter(buyer=request.user).count()
+    return render(request, "accounts/dashboard.html", {
+        "seller_profile": seller_profile, "order_count": order_count,
+    })
