@@ -7,10 +7,12 @@ from .orm_selectors import live_products, search_live_products
 
 
 def _product_highlights(product):
-    lines = [line.strip("•- 	") for line in (product.description or "").splitlines() if line.strip()]
+    # Seller-entered highlights take priority; preserve fallback for older products.
+    source = product.highlights or product.description or ""
+    lines = [line.strip("•- \t") for line in source.splitlines() if line.strip()]
     if not lines and product.short_description:
         lines = [part.strip() for part in product.short_description.split("·") if part.strip()]
-    bullets = lines[:5]
+    bullets = lines[:6]
     if not bullets:
         bullets = [
             f"Category: {product.category.name}",
