@@ -7,24 +7,30 @@ from .selectors import get_category, get_product, get_store, get_store_products,
 
 
 def _demo_gallery(product):
-    palettes = [
-        (product["image"], f"product-art--{product['visual']}", "Main view"),
-        (product["image"], "product-art--wearables", "Lifestyle view"),
-        (product["image"], "product-art--computing", "Side detail"),
-        (product["image"], "product-art--photography", "Packaging preview"),
-        (product["image"], "product-art--lifestyle", "In-room styling"),
-    ]
-    gallery = []
-    for index, (image, art_class, label) in enumerate(palettes, start=1):
-        gallery.append({
-            "src": image,
-            "alt": f"{product['name']} {label.lower()}",
-            "art_class": art_class,
-            "label": label,
-            "index": index,
-        })
-    return gallery
+    """Five visibly distinct presentations of the ONE original demo illustration.
 
+    These are styling/crop treatments, not additional product photographs.
+    """
+    views = (
+        ("hero", "Main view", "Main", "Full product illustration"),
+        ("detail", "Close-up", "Detail", "Zoomed illustration detail"),
+        ("angle", "Tilted view", "Angle", "Stylized angled artwork"),
+        ("outline", "Minimal view", "Minimal", "Clean monochrome presentation"),
+        ("showcase", "Showcase", "Display", "Illustration on a contrasting backdrop"),
+    )
+    return [
+        {
+            "src": product["image"],
+            "alt": f"{product['name']} – {description.lower()}",
+            "art_class": f"product-art--{product['visual']}",
+            "view": view,
+            "label": label,
+            "short_label": short,
+            "description": description,
+            "index": index,
+        }
+        for index, (view, label, short, description) in enumerate(views, start=1)
+    ]
 
 def product_list(request):
     query = request.GET.get("q", "")[:120].strip()

@@ -11,6 +11,25 @@ from .models import Product
 from .services.products import create_product, require_seller_store, submit_product, update_product
 
 
+def _gallery_slots(form, product=None):
+    """One input and one saved preview for each of the five fixed positions."""
+    saved = {}
+    if product is not None:
+        saved = {
+            photo.sort_order: photo
+            for photo in product.images.all()
+            if 0 <= photo.sort_order < 5
+        }
+    return [
+        {
+            "number": index + 1,
+            "field": form[f"image_{index + 1}"],
+            "picture": saved.get(index),
+        }
+        for index in range(5)
+    ]
+
+
 @login_required
 def product_dashboard(request):
     store = require_seller_store(request.user)
@@ -32,7 +51,9 @@ def product_create(request):
         else:
             messages.success(request, "Product draft saved. Submit it for review when ready.")
             return redirect("catalog:seller_product_edit", pk=product.pk)
-    return render(request, "catalog/seller/product_form.html", {"form": form, "editing": False})
+    return render(request, "catalog/seller/product_form.html", {
+        "form": form, "editing": False, "gallery_slots": _gallery_slots(form),
+    })
 
 
 @login_required
@@ -53,6 +74,7 @@ def product_edit(request, pk):
             return redirect("catalog:seller_product_edit", pk=pk)
     return render(request, "catalog/seller/product_form.html", {
         "form": form, "editing": True, "product": product,
+        "gallery_slots": _gallery_slots(form, product),
     })
 
 

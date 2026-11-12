@@ -3,7 +3,6 @@ from uuid import uuid4
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import Max
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -38,26 +37,45 @@ def _bdt():
 
 
 def _save_product_images(product, cleaned):
-    # Support older callers that submit a single `image` upload while
-    # the seller UI uses the `images` list assembled by ProductForm.
-    uploads = list(cleaned.get("images") or [])
-    if not uploads and cleaned.get("image"):
-        uploads = [cleaned["image"]]
-    if not uploads:
-        return
-    existing = ProductImage.objects.filter(product=product)
-    existing_count = existing.count()
-    if existing_count + len(uploads) > 5:
-        raise ValidationError("A product can have at most 5 gallery images.")
-    max_sort = existing.aggregate(max_sort=Max("sort_order"))["max_sort"]
-    next_sort = 0 if max_sort is None else max_sort + 1
-    for offset, uploaded in enumerate(uploads):
-        ProductImage.objects.create(
-            product=product,
-            image=uploaded,
-            alt_text=product.name,
-            sort_order=next_sort + offset,
-        )
+    """Save one photo per slot (0..4), replacing photos in occupied slots.
+
+    Older API/service callers may still pass a legacy image or images list.
+    Unselected slots and their existing images are never altered.
+    """
+    existing = {
+        image.sort_order: image
+        for image in ProductImage.objects.filter(product=product).order_by("sort_order", "id")
+    }
+    slots = dict(cleaned.get("image_slots") or {})
+    if "image_slots" not in cleaned:
+        uploads = list(cleaned.get("images") or [])
+        if not uploads and cleaned.get("image"):
+            uploads = [cleaned["image"]]
+    else:
+        uploads = [cleaned["image"]] if cleaned.get("image") else []
+
+    for uploaded in uploads:
+        vacant = next((i for i in range(5) if i not in existing and i not in slots), None)
+        if vacant is None:
+            raise ValidationError("A product can have no more than five gallery images.")
+        slots[vacant] = uploaded
+
+    if any(type(index) is not int or index not in range(5) for index in slots):
+        raise ValidationError("Invalid gallery image slot.")
+    if len(existing) + sum(1 for index in slots if index not in existing) > 5:
+        raise ValidationError("A product can have no more than five gallery images.")
+
+    for index, uploaded in sorted(slots.items()):
+        if index in existing:
+            photo = existing[index]
+            photo.image = uploaded
+            photo.alt_text = product.name
+            photo.save(update_fields=["image", "alt_text"])
+        else:
+            ProductImage.objects.create(
+                product=product, image=uploaded,
+                alt_text=product.name, sort_order=index,
+            )
 
 
 @transaction.atomic
@@ -71,6 +89,8 @@ def create_product(*, seller, cleaned):
         brand=cleaned.get("brand"),
         short_description=cleaned.get("short_description", ""),
         description=cleaned.get("description", ""),
+        highlights=cleaned.get("highlights", ""),
+        specifications=cleaned.get("specifications_text", {}),
     )
     variant = ProductVariant.objects.create(product=product, sku=cleaned["sku"].strip().upper(), is_default=True)
     ProductVariantPrice.objects.create(variant=variant, currency=_bdt(), amount=cleaned["price_bdt"])
@@ -96,12 +116,14 @@ def update_product(*, seller, product_id, cleaned):
     product.brand = cleaned.get("brand")
     product.short_description = cleaned.get("short_description", "")
     product.description = cleaned.get("description", "")
+    product.highlights = cleaned.get("highlights", "")
+    product.specifications = cleaned.get("specifications_text", {})
     product.status = Product.Status.DRAFT  # Edits to published items require re-approval.
     product.reviewed_by = None
     product.moderation_note = ""
     product.published_at = None
     product.save(update_fields=[
-        "name", "category", "brand", "short_description", "description", "status",
+        "name", "category", "brand", "short_description", "description", "highlights", "specifications", "status",
         "reviewed_by", "moderation_note", "published_at", "updated_at",
     ])
     variant = ProductVariant.objects.select_for_update().get(product=product, is_default=True)

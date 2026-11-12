@@ -295,7 +295,10 @@
     button.addEventListener("click", async () => {
       const id = button.dataset.itemId;
       if (!catalog.has(id)) return;
-      const desired = cart.filter((itemId) => itemId === id).length + 1;
+      const selected = button.hasAttribute("data-detail-quantity")
+        ? Number(document.querySelector("[data-demo-qty-value]")?.textContent || 1)
+        : 1;
+      const desired = cart.filter((itemId) => itemId === id).length + selected;
       button.disabled = true;
       try {
         const result = await changeSavedItems("demo_cart_set", { product_id: id, quantity: desired });
@@ -480,6 +483,23 @@
     } catch (error) { notify(error.message); }
   }
 
+  document.querySelectorAll("[data-real-qty]").forEach((picker) => {
+    const output = picker.querySelector("[data-real-qty-value]");
+    const minus = picker.querySelector("[data-real-qty-minus]");
+    const plus = picker.querySelector("[data-real-qty-plus]");
+    if (!output || !minus || !plus) return;
+    const max = Math.max(1, Math.min(99, Number(picker.dataset.stockMax) || 1));
+    const set = (value) => {
+      const quantity = Math.max(1, Math.min(max, value));
+      output.textContent = String(quantity);
+      minus.disabled = quantity <= 1;
+      plus.disabled = quantity >= max;
+    };
+    minus.addEventListener("click", () => set(Number(output.textContent) - 1));
+    plus.addEventListener("click", () => set(Number(output.textContent) + 1));
+    set(1);
+  });
+
   document.querySelectorAll("[data-add-real-bag]").forEach((button) => {
     button.addEventListener("click", async () => {
       if (!realApi.authenticated) {
@@ -492,7 +512,10 @@
       button.disabled = true;
       try {
         const variantId = Number(button.dataset.variantId);
-        await writeReal(realApi.add, { variant_id: variantId, quantity: 1 });
+        const quantity = button.hasAttribute("data-detail-quantity")
+          ? Number(document.querySelector("[data-real-qty-value]")?.textContent || 1)
+          : 1;
+        await writeReal(realApi.add, { variant_id: variantId, quantity });
         await flyProductThumbnail(button);
         bumpBadge();
         openCart();
@@ -535,37 +558,81 @@
     }
   });
 
+  // Detail page quantity selector. Server still validates the 99-unit cap.
+  document.querySelectorAll("[data-demo-qty]").forEach((picker) => {
+    const output = picker.querySelector("[data-demo-qty-value]");
+    const minus = picker.querySelector("[data-demo-qty-minus]");
+    const plus = picker.querySelector("[data-demo-qty-plus]");
+    if (!output || !minus || !plus) return;
+    const set = (value) => {
+      const quantity = Math.max(1, Math.min(99, value));
+      output.textContent = String(quantity);
+      minus.disabled = quantity <= 1;
+      plus.disabled = quantity >= 99;
+    };
+    minus.addEventListener("click", () => set(Number(output.textContent) - 1));
+    plus.addEventListener("click", () => set(Number(output.textContent) + 1));
+    set(1);
+  });
+
   function initProductGalleries() {
     document.querySelectorAll("[data-product-gallery]").forEach((gallery) => {
       const thumbs = [...gallery.querySelectorAll("[data-gallery-thumb]")];
       if (!thumbs.length) return;
+
       const mainImage = gallery.querySelector("[data-gallery-main-image]");
       const stage = gallery.querySelector("[data-gallery-stage]");
+      const position = gallery.querySelector("[data-gallery-position]");
+      const title = gallery.querySelector("[data-gallery-title]");
+      const description = gallery.querySelector("[data-gallery-description]");
       let current = Math.max(0, thumbs.findIndex((thumb) => thumb.classList.contains("is-active")));
-      if (current === -1) current = 0;
+      let touchX = null;
 
-      function apply(index) {
+      const display = (index, { focus = false } = {}) => {
         current = (index + thumbs.length) % thumbs.length;
         const active = thumbs[current];
         thumbs.forEach((thumb, i) => {
-          const activeState = i === current;
-          thumb.classList.toggle("is-active", activeState);
-          thumb.setAttribute("aria-current", activeState ? "true" : "false");
+          const selected = i === current;
+          thumb.classList.toggle("is-active", selected);
+          if (selected) thumb.setAttribute("aria-current", "true");
+          else thumb.removeAttribute("aria-current");
         });
-        if (mainImage) {
-          mainImage.src = active.dataset.src || mainImage.src;
-          mainImage.alt = active.dataset.alt || mainImage.alt;
-        }
         if (stage) {
-          [...stage.classList].filter((name) => name.startsWith("product-art--")).forEach((name) => stage.classList.remove(name));
+          stage.dataset.galleryIndex = String(current);
+          [...stage.classList]
+            .filter((name) => name.startsWith("product-art--"))
+            .forEach((name) => stage.classList.remove(name));
           if (active.dataset.artClass) stage.classList.add(active.dataset.artClass);
         }
-      }
+        if (mainImage) {
+          if (active.dataset.src) mainImage.src = active.dataset.src;
+          if (active.dataset.alt) mainImage.alt = active.dataset.alt;
+        }
+        if (position) position.textContent = `${String(current + 1).padStart(2, "0")} / ${String(thumbs.length).padStart(2, "0")}`;
+        if (title) title.textContent = active.dataset.label || "";
+        if (description) description.textContent = active.dataset.description || "";
+        if (focus) active.focus();
+      };
 
-      thumbs.forEach((thumb, index) => thumb.addEventListener("click", () => apply(index)));
-      gallery.querySelector('[data-gallery-nav="prev"]')?.addEventListener("click", () => apply(current - 1));
-      gallery.querySelector('[data-gallery-nav="next"]')?.addEventListener("click", () => apply(current + 1));
-      apply(current);
+      thumbs.forEach((thumb, index) => thumb.addEventListener("click", () => display(index)));
+      gallery.querySelector('[data-gallery-nav="prev"]')?.addEventListener("click", () => display(current - 1));
+      gallery.querySelector('[data-gallery-nav="next"]')?.addEventListener("click", () => display(current + 1));
+
+      stage?.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+        event.preventDefault();
+        display(current + (event.key === "ArrowRight" ? 1 : -1));
+      });
+      stage?.addEventListener("touchstart", (event) => {
+        if (event.touches.length === 1) touchX = event.touches[0].clientX;
+      }, { passive: true });
+      stage?.addEventListener("touchend", (event) => {
+        if (touchX === null || !event.changedTouches.length) return;
+        const delta = event.changedTouches[0].clientX - touchX;
+        touchX = null;
+        if (Math.abs(delta) >= 45) display(current + (delta < 0 ? 1 : -1));
+      }, { passive: true });
+      display(current);
     });
   }
 
