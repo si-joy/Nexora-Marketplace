@@ -483,6 +483,23 @@
     } catch (error) { notify(error.message); }
   }
 
+  document.querySelectorAll("[data-real-qty]").forEach((picker) => {
+    const output = picker.querySelector("[data-real-qty-value]");
+    const minus = picker.querySelector("[data-real-qty-minus]");
+    const plus = picker.querySelector("[data-real-qty-plus]");
+    if (!output || !minus || !plus) return;
+    const max = Math.max(1, Math.min(99, Number(picker.dataset.stockMax) || 1));
+    const set = (value) => {
+      const quantity = Math.max(1, Math.min(max, value));
+      output.textContent = String(quantity);
+      minus.disabled = quantity <= 1;
+      plus.disabled = quantity >= max;
+    };
+    minus.addEventListener("click", () => set(Number(output.textContent) - 1));
+    plus.addEventListener("click", () => set(Number(output.textContent) + 1));
+    set(1);
+  });
+
   document.querySelectorAll("[data-add-real-bag]").forEach((button) => {
     button.addEventListener("click", async () => {
       if (!realApi.authenticated) {
@@ -495,7 +512,10 @@
       button.disabled = true;
       try {
         const variantId = Number(button.dataset.variantId);
-        await writeReal(realApi.add, { variant_id: variantId, quantity: 1 });
+        const quantity = button.hasAttribute("data-detail-quantity")
+          ? Number(document.querySelector("[data-real-qty-value]")?.textContent || 1)
+          : 1;
+        await writeReal(realApi.add, { variant_id: variantId, quantity });
         await flyProductThumbnail(button);
         bumpBadge();
         openCart();
