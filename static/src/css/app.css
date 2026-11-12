@@ -411,3 +411,78 @@
     .demo-gallery-main-image, .demo-gallery-halo { transition: none; }
   }
 }
+
+
+/* Shared full-bleed merchandising imagery. Keep masks, buttons and gallery
+   navigation on top; only product/category image wrappers are targeted. */
+@layer components {
+  .cart-item-visual img,
+  .cart-flying-thumbnail img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .marketplace-detail-gallery .product-gallery-stage {
+    position: relative;
+    padding: 0;
+  }
+  .marketplace-detail-gallery .product-gallery-stage > [data-gallery-main-image] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  .marketplace-detail-gallery .product-gallery-thumb {
+    padding: 0;
+    overflow: hidden;
+  }
+  .marketplace-detail-gallery .product-gallery-thumb__photo {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .marketplace-detail-gallery .product-gallery-thumb__photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  [data-seller-gallery] [data-gallery-upload-preview] {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  [data-seller-gallery] [data-gallery-upload-preview][hidden] {
+    display: none;
+  }
+
+  .demo-detail-stage {
+    padding: 0;
+  }
+  .demo-detail-stage .demo-gallery-main-image {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: center;
+  }
+  .demo-gallery-thumb-art img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  .demo-gallery-thumb {
+    overflow: hidden;
+  }
+}

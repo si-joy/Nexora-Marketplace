@@ -5,7 +5,7 @@
     <button type="button" data-favorite-toggle data-item-id="{{ product.id }}" data-item-name="{{ product.name }}" aria-label="Save {{ product.name }} to favorites" aria-pressed="false" class="absolute right-3 top-3 z-10 flex size-9 items-center justify-center rounded-full bg-surface text-foreground shadow-sm transition hover:scale-105 hover:text-primary">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-[18px]" aria-hidden="true"><path d="M20.8 4.9a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.3a5.5 5.5 0 0 0 0-7.8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <a href="{% url 'catalog:product_detail' product.id %}" class="flex h-full w-full items-center justify-center" aria-label="View {{ product.name }} details"><img class="h-[170px] w-[88%] object-contain drop-shadow-xl transition duration-500 group-hover:scale-[1.065] sm:h-[192px]" src="{% static product.image %}" alt="Illustration of {{ product.name }}" loading="lazy" width="240" height="200"></a>
+    <a href="{% url 'catalog:product_detail' product.id %}" class="relative block h-full w-full overflow-hidden" aria-label="View {{ product.name }} details"><img class="absolute inset-0 h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.065]" src="{% static product.image %}" alt="Illustration of {{ product.name }}" loading="lazy" width="240" height="200"></a>
   </div>
   <div class="p-4 sm:p-5">
     <p class="mb-1.5 text-[10px] font-bold uppercase tracking-[.13em] text-muted">{{ product.category }}</p>

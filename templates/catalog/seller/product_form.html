@@ -10,13 +10,50 @@
       <div class="grid gap-5 sm:grid-cols-2">
         <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.name %}</div>
         {% include 'components/forms/field.html' with field=form.category %}
-        {% include 'components/forms/field.html' with field=form.brand %}
+        <div class="min-w-0" data-brand-editor>
+          <div class="flex min-h-5 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <label for="{{ form.brand.id_for_label }}" class="block text-sm font-bold text-foreground">Brand <span class="font-normal text-muted">(optional)</span></label>
+            <button type="button" data-brand-mode-toggle
+              aria-controls="seller-new-brand" aria-expanded="{% if form.new_brand_name.value or form.new_brand_name.errors %}true{% else %}false{% endif %}"
+              class="rounded-md px-1 text-xs font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              {% if form.new_brand_name.value or form.new_brand_name.errors %}Choose existing{% else %}+ New brand{% endif %}
+            </button>
+          </div>
+          <div data-brand-existing {% if form.new_brand_name.value or form.new_brand_name.errors %}hidden{% endif %}>
+            {{ form.brand }}
+            {% if form.brand.errors %}
+              <div role="alert" class="mt-1.5 text-xs font-semibold text-danger">{% for error in form.brand.errors %}<p>{{ error }}</p>{% endfor %}</div>
+            {% endif %}
+          </div>
+          <div id="seller-new-brand" data-brand-new {% if not form.new_brand_name.value and not form.new_brand_name.errors %}hidden{% endif %}>
+            <label for="{{ form.new_brand_name.id_for_label }}" class="sr-only">New brand name</label>
+            {{ form.new_brand_name }}
+            {% if form.new_brand_name.errors %}
+              <div role="alert" class="mt-1.5 text-xs font-semibold text-danger">{% for error in form.new_brand_name.errors %}<p>{{ error }}</p>{% endfor %}</div>
+            {% endif %}
+            <p class="mt-1.5 text-xs text-muted">New brand will be added when you save.</p>
+          </div>
+        </div>
         <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.short_description %}</div>
         <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.description %}</div>
         <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.highlights %}</div>
         <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.specifications_text %}</div>
         {% include 'components/forms/field.html' with field=form.sku %}
-        {% include 'components/forms/field.html' with field=form.price_bdt %}
+        <div class="sm:col-span-2 rounded-2xl border border-line bg-surface-soft p-4 sm:p-5">
+          <h2 class="text-sm font-extrabold text-foreground">Product pricing</h2>
+          <p class="mt-1 text-xs leading-6 text-muted">Set a regular price. Add a lower sale price only when offering a real discount.</p>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            {% include 'components/forms/field.html' with field=form.price_bdt %}
+            {% include 'components/forms/field.html' with field=form.sale_price_bdt %}
+          </div>
+          <div class="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3">
+            <span class="text-xs font-bold text-muted">Storefront preview</span>
+            <strong data-price-preview-final class="text-lg font-black text-foreground">—</strong>
+            <del data-price-preview-original hidden class="text-sm text-muted"></del>
+            <span data-price-preview-badge hidden class="rounded-full bg-surface-soft px-2 py-1 text-xs font-bold text-success"></span>
+          </div>
+          <p data-price-preview-error class="mt-2 text-xs text-muted" aria-live="polite">The cart always uses the effective selling price.</p>
+        </div>
         {% if not editing %}
           <div class="sm:col-span-2 rounded-2xl border border-line bg-surface-soft p-4 sm:p-5">
             <h2 class="text-base font-extrabold text-foreground">Inventory · Initial stock</h2>
@@ -40,9 +77,9 @@
             <div data-gallery-upload-slot class="min-w-0 rounded-xl border border-line bg-surface p-2.5 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 hover:border-primary/50">
               <div class="relative aspect-square overflow-hidden rounded-lg bg-surface-soft">
                 {% if slot.picture %}
-                  <img data-gallery-upload-preview src="{{ slot.picture.image.url }}" alt="Saved product image {{ slot.number }}" class="h-full w-full object-contain">
+                  <img data-gallery-upload-preview src="{{ slot.picture.image.url }}" alt="Saved product image {{ slot.number }}" class="absolute inset-0 h-full w-full object-cover object-center">
                 {% else %}
-                  <img data-gallery-upload-preview hidden alt="Preview of selected image {{ slot.number }}" class="h-full w-full object-contain">
+                  <img data-gallery-upload-preview hidden alt="Preview of selected image {{ slot.number }}" class="absolute inset-0 h-full w-full object-cover object-center">
                 {% endif %}
                 <span data-gallery-upload-placeholder {% if slot.picture %}hidden{% endif %} class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="size-7" aria-hidden="true">
@@ -88,4 +125,8 @@
 </section>
 {% endblock %}
 
-{% block extra_js %}<script defer src="{% static 'js/seller-gallery.js' %}"></script>{% endblock %}
+{% block extra_js %}
+<script defer src="{% static 'js/seller-gallery.js' %}"></script>
+<script defer src="{% static 'js/seller-pricing.js' %}"></script>
+<script defer src="{% static 'js/seller-brand.js' %}"></script>
+{% endblock %}

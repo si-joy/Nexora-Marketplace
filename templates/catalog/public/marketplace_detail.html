@@ -12,7 +12,7 @@
     <div data-product-gallery class="marketplace-detail-gallery min-w-0" aria-label="Seller product gallery">
       <div data-gallery-stage tabindex="0" class="product-gallery-stage product-gallery-stage--photo w-full" aria-label="Product photos, use arrow keys to navigate">
         {% if gallery %}
-          <img data-gallery-main-image src="{{ gallery.0.image.url }}" alt="{{ gallery.0.alt_text|default:product.name }}" width="720" height="720" fetchpriority="high" class="h-full w-full object-contain">
+          <img data-gallery-main-image src="{{ gallery.0.image.url }}" alt="{{ gallery.0.alt_text|default:product.name }}" width="720" height="720" fetchpriority="high" class="absolute inset-0 h-full w-full object-cover object-center">
           {% if gallery|length > 1 %}
           <button type="button" data-gallery-nav="prev" class="gallery-nav gallery-nav--prev" aria-label="Previous product image">‹</button>
           <button type="button" data-gallery-nav="next" class="gallery-nav gallery-nav--next" aria-label="Next product image">›</button>
@@ -30,7 +30,7 @@
         {% for picture in gallery %}
         <button type="button" data-gallery-thumb data-index="{{ forloop.counter0 }}" data-src="{{ picture.image.url }}" data-alt="{{ picture.alt_text|default:product.name }}" data-label="Product image {{ forloop.counter }}"
           class="product-gallery-thumb {% if forloop.first %}is-active{% endif %}" aria-label="View image {{ forloop.counter }} of {{ gallery|length }}" {% if forloop.first %}aria-current="true"{% endif %}>
-          <span class="product-gallery-thumb__photo"><img src="{{ picture.image.url }}" alt="" loading="lazy" width="110" height="110" class="h-full w-full object-contain"></span>
+          <span class="product-gallery-thumb__photo"><img src="{{ picture.image.url }}" alt="" loading="lazy" width="110" height="110" class="h-full w-full object-cover object-center"></span>
         </button>
         {% endfor %}
       </div>
@@ -55,6 +55,7 @@
 
       <div class="mt-6 flex flex-wrap items-end gap-3 border-b border-line pb-6">
         <strong class="text-3xl font-black tracking-tight text-foreground sm:text-[2.5rem]">{% if product.bdt_price != None %}৳{{ product.bdt_price|floatformat:2 }}{% else %}Price unavailable{% endif %}</strong>
+        {% if product.bdt_compare_at_price %}<del class="pb-1 text-sm font-semibold text-muted">৳{{ product.bdt_compare_at_price|floatformat:2 }}</del>{% endif %}
         {% with variant=product.shop_variant %}
           {% if variant and variant.available_stock > 0 %}
             <span class="mb-1 ml-auto rounded-full bg-surface-soft px-3 py-1.5 text-[11px] font-bold text-success">{{ variant.available_stock }} available</span>
