@@ -75,6 +75,13 @@ def place_order(*, user, token, details, variant_id=None, quantity=1):
     # Serialize checkout of a given buyer's bag on databases with row locking.
     from django.contrib.auth import get_user_model
     get_user_model().objects.select_for_update().get(pk=user.pk)
+    # A second concurrent request using the same token may have completed
+    # while waiting for the buyer lock. Check again before reserving stock.
+    existing = Order.objects.filter(checkout_token=key).first()
+    if existing:
+        if existing.buyer_id != user.pk:
+            raise ValidationError("Invalid checkout token. Reload checkout.")
+        return existing
     source = Order.Source.DIRECT if variant_id is not None else Order.Source.CART
     data = _items_for_checkout(user, variant_id=variant_id, quantity=quantity)
     lines = []
