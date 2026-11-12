@@ -1,0 +1,52 @@
+<section data-seller-panel-view="products" aria-labelledby="seller-products-title">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="section-overline">SELLER CENTER / CATALOG</p>
+      <h2 id="seller-products-title" data-seller-panel-heading tabindex="-1" class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Manage products<span class="text-primary">.</span></h2>
+      <p class="mt-2 text-sm text-muted">Create, edit and submit products for approval.</p>
+    </div>
+    <a href="{% url 'catalog:seller_product_create' %}" class="rounded-xl bg-primary px-4 py-3 text-xs font-extrabold text-on-primary hover:bg-primary-hover">+ Add product</a>
+  </div>
+  <div class="mt-6 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+    {% if page.object_list %}
+      <div class="space-y-3">
+      {% for product in page.object_list %}
+        <div class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface-soft p-4">
+          <div class="flex min-w-0 items-center gap-4">
+            {% with picture=product.primary_image %}
+            {% if picture %}
+              <img src="{{ picture.image.url }}" alt="{{ picture.alt_text }}" class="size-16 shrink-0 rounded-xl border border-line bg-surface object-cover">
+            {% else %}
+              <div class="flex size-16 shrink-0 items-center justify-center rounded-xl border border-line bg-surface text-xs font-bold text-muted">No photo</div>
+            {% endif %}
+            {% endwith %}
+            <div class="min-w-0">
+              <a href="{% url 'catalog:seller_product_edit' product.pk %}" class="break-words font-extrabold text-foreground hover:text-primary">{{ product.name }}</a>
+              <p class="mt-1 text-xs text-muted">{{ product.category.name }} · {{ product.variants.first.sku }}</p>
+              <p class="mt-1 text-sm font-bold text-foreground">{% if product.bdt_price %}৳{{ product.bdt_price|floatformat:2 }}{% if product.bdt_compare_at_price %}<del class="ml-1 text-xs text-muted">৳{{ product.bdt_compare_at_price|floatformat:2 }}</del>{% endif %}{% else %}No price{% endif %}</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            {% with variant=product.variants.first %}{% if variant %}<a href="{% url 'inventory:adjust' variant.pk %}" class="rounded-lg border border-line bg-surface px-3 py-2 text-xs font-bold text-primary">Stock →</a>{% endif %}{% endwith %}
+            <span class="rounded-full border border-line px-3 py-1.5 text-xs font-bold text-muted">{{ product.get_status_display }}</span>
+            <a href="{% url 'catalog:seller_product_edit' product.pk %}" class="rounded-lg bg-surface px-4 py-2 text-xs font-bold text-primary">Edit →</a>
+          </div>
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}
+      <div class="rounded-xl border border-dashed border-line px-4 py-14 text-center">
+        <h3 class="text-lg font-extrabold">Your catalog is empty</h3>
+        <p class="mt-2 text-sm text-muted">Create your first product, then request admin approval.</p>
+        <a href="{% url 'catalog:seller_product_create' %}" class="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-xs font-bold text-on-primary">Create product</a>
+      </div>
+    {% endif %}
+    {% if page.has_other_pages %}
+    <nav aria-label="Product pagination" class="mt-6 flex justify-center gap-3 text-sm">
+      {% if page.has_previous %}<a data-seller-panel-link href="{% url 'vendors:dashboard' %}?tab=products&page={{ page.previous_page_number }}" class="rounded-lg border border-line px-3 py-2 font-semibold text-primary">← Previous</a>{% endif %}
+      <span class="px-2 py-2 text-muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+      {% if page.has_next %}<a data-seller-panel-link href="{% url 'vendors:dashboard' %}?tab=products&page={{ page.next_page_number }}" class="rounded-lg border border-line px-3 py-2 font-semibold text-primary">Next →</a>{% endif %}
+    </nav>
+    {% endif %}
+  </div>
+</section>
