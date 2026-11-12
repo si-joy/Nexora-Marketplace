@@ -281,3 +281,31 @@
     .gallery-nav { width: 38px; height: 38px; font-size: 24px; }
   }
 }
+
+
+/* Marketplace details: balanced photo stage and five equal thumbnail slots.
+   Semantic variables keep the same result in light and dark themes. */
+@layer components {
+  .marketplace-detail-gallery .product-gallery-stage {
+    aspect-ratio: 1 / 1;
+    min-height: 0;
+    max-height: 590px;
+    padding: clamp(12px, 3%, 26px);
+    border-radius: 24px;
+    box-shadow: none;
+  }
+  .marketplace-detail-gallery .product-gallery-thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    min-width: 0;
+    border-radius: 14px;
+  }
+  .marketplace-detail-gallery .product-gallery-thumb__photo { border-radius: 12px; }
+  .marketplace-detail-gallery .gallery-nav--prev { left: 12px; }
+  .marketplace-detail-gallery .gallery-nav--next { right: 12px; }
+  @media (max-width: 639px) {
+    .marketplace-detail-gallery .product-gallery-stage { aspect-ratio: 4 / 3; }
+    .marketplace-detail-gallery .gallery-nav { width: 34px; height: 34px; }
+  }
+}
