@@ -34,6 +34,7 @@ def marketplace_list(request):
 def marketplace_detail(request, slug):
     product = get_object_or_404(live_products(), slug=slug)
     gallery = list(product.images.all()[:5])
+    product.shop_variant = next((variant for variant in product.variants.all() if variant.is_default and variant.is_active), None)
     return render(request, "catalog/public/marketplace_detail.html", {
         "product": product,
         "gallery": gallery,

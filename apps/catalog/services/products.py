@@ -75,6 +75,13 @@ def create_product(*, seller, cleaned):
     variant = ProductVariant.objects.create(product=product, sku=cleaned["sku"].strip().upper(), is_default=True)
     ProductVariantPrice.objects.create(variant=variant, currency=_bdt(), amount=cleaned["price_bdt"])
     _save_product_images(product, cleaned)
+    initial_stock = cleaned.get("initial_stock")
+    if initial_stock is not None:
+        if type(initial_stock) is not int or initial_stock < 0 or initial_stock > 100_000:
+            raise ValidationError("Initial stock must be a whole number between 0 and 100,000.")
+        if initial_stock:
+            from apps.inventory.services import adjust_stock
+            adjust_stock(seller=seller, variant_id=variant.pk, delta=initial_stock, note="Initial stock on product creation")
     return product
 
 
