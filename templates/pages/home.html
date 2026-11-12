@@ -49,12 +49,12 @@
     <div id="product-grid" class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
       {% for product in demo_products %}{% include 'components/cards/product_preview.html' with product=product %}{% endfor %}
     </div>
-    <div class="mt-8 text-center"><a href="{% url 'catalog:shop' %}" class="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-6 py-3.5 text-sm font-extrabold text-foreground transition hover:border-primary hover:text-primary">Shop all products →</a></div>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3"><a href="{% url 'catalog:shop' %}" class="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-6 py-3.5 text-sm font-extrabold text-foreground transition hover:border-primary hover:text-primary">Browse demo products →</a><a href="{% url 'catalog:marketplace_list' %}" class="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-extrabold text-on-primary transition hover:bg-primary-hover">Explore seller listings →</a></div>
   </section>
   <section id="featured-collection" class="feature-banner relative mt-8 flex min-h-[245px] flex-col justify-between gap-5 overflow-hidden rounded-[27px] p-7 sm:min-h-[260px] sm:flex-row sm:items-center sm:p-10 lg:pl-14">
     <div class="relative z-10 max-w-lg"><span class="text-[11px] font-extrabold uppercase tracking-[.2em] text-feature-kicker">WORK. PLAY. CREATE.</span><h2 class="mt-3 text-[28px] font-extrabold leading-tight tracking-[-.05em] text-feature-title sm:text-4xl">Your setup deserves<br>something special.</h2><p class="mt-3 max-w-sm text-sm leading-6 text-feature-copy">Refresh your desk with thoughtfully chosen gear.</p><a href="{% url 'catalog:category_detail' 'computing' %}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-feature-button px-5 py-3 text-xs font-bold text-feature-button-text transition hover:-translate-y-0.5">Explore computing <span aria-hidden="true">→</span></a></div>
     <img src="{% static 'images/products/laptop.svg' %}" alt="Illustration of a laptop" loading="lazy" class="relative z-0 mx-auto h-[170px] w-[250px] object-contain sm:absolute sm:bottom-[-39px] sm:right-0 sm:h-[290px] sm:w-[44%] lg:right-8" width="400" height="290">
   </section>
-  <p class="mt-6 text-center text-[11px] leading-6 text-muted">This is a design preview. Favorites and shopping bag are browser-only demos; no real orders or payments are processed.</p>
+  <p class="mt-6 text-center text-[11px] leading-6 text-muted">Demo products, wishlist and shopping bag are browser-only previews. Approved seller listings appear separately in Marketplace; orders and payments are not live.</p>
 </div>
 {% endblock %}
