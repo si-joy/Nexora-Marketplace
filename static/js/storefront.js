@@ -561,6 +561,13 @@
   refreshSavedItems();
   refreshRealCart();
 
+  // The account dashboard can update these same database-backed items inline.
+  // Refresh this shared header/drawer state without reinitializing handlers.
+  window.addEventListener("nexora:account-items-updated", () => {
+    refreshSavedItems();
+    refreshRealCart();
+  });
+
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
       // An account may have signed out in a different tab.
