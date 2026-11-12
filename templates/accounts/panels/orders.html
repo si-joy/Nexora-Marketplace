@@ -1,0 +1,83 @@
+<section data-customer-panel-view="orders" aria-labelledby="customer-orders-title">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="section-overline">CUSTOMER PORTAL / ORDERS</p>
+      <h2 id="customer-orders-title" data-customer-panel-heading tabindex="-1" class="mt-2 text-2xl font-black tracking-tight text-foreground sm:text-3xl">
+        {% if order_detail %}Order #{{ order_detail.pk }}{% else %}My orders{% endif %}<span class="text-primary">.</span>
+      </h2>
+      <p class="mt-2 text-sm text-muted">Track cash-on-delivery requests and seller updates.</p>
+    </div>
+    {% if order_detail %}
+      <a data-customer-panel-link href="{% url 'accounts:dashboard' %}?tab=orders" class="text-sm font-bold text-primary hover:underline">← All orders</a>
+    {% endif %}
+  </div>
+
+  {% if order_detail %}
+    <div class="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
+      <div class="overflow-hidden rounded-2xl border border-line bg-surface">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
+          <div><p class="font-extrabold text-foreground">Order #{{ order_detail.pk }}</p><p class="mt-1 text-xs text-muted">{{ order_detail.created_at|date:"d M Y, g:i A" }}</p></div>
+          <span class="rounded-full bg-surface-soft px-3 py-2 text-xs font-bold text-primary">{{ order_detail.summary_status }}</span>
+        </div>
+        {% for line in order_detail.lines.all %}
+          <div class="flex flex-wrap items-start justify-between gap-4 border-b border-line p-5 last:border-0">
+            <div class="min-w-0">
+              <p class="font-extrabold text-foreground">{{ line.product_name }}</p>
+              <p class="mt-1 text-xs text-muted">{{ line.store_name }} · SKU {{ line.sku }} · Qty {{ line.quantity }}</p>
+              <p class="mt-2 text-xs font-bold text-primary">{{ line.get_status_display }}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-extrabold text-foreground">৳{{ line.line_total_bdt|floatformat:2 }}</p>
+              {% if line.status == 'pending' %}
+              <form data-customer-order-cancel action="{% url 'orders:customer_cancel_line' line.pk %}" method="post" class="mt-3">
+                {% csrf_token %}
+                <button type="submit" class="text-xs font-bold text-danger hover:underline">Cancel pending item</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+        <div class="flex flex-wrap items-center justify-between gap-3 p-5 text-sm"><strong>Product subtotal at ordering</strong><strong>৳{{ order_detail.subtotal_bdt|floatformat:2 }}</strong></div>
+      </div>
+      <aside class="h-fit rounded-2xl border border-line bg-surface p-5">
+        <h3 class="font-extrabold text-foreground">Delivery information</h3>
+        <p class="mt-4 text-sm font-bold">{{ order_detail.contact_name }}</p>
+        <p class="mt-2 text-sm text-muted">{{ order_detail.phone }}</p>
+        <p class="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted">{{ order_detail.address_line }}, {{ order_detail.area }} {{ order_detail.postal_code }}</p>
+        {% if order_detail.notes %}<p class="mt-3 border-t border-line pt-3 text-xs text-muted">{{ order_detail.notes }}</p>{% endif %}
+        <p class="mt-4 border-t border-line pt-3 text-xs font-bold text-primary">Cash on delivery · Manual confirmation</p>
+        <p class="mt-2 text-xs leading-6 text-muted">Shipping and tax charges are not calculated automatically.</p>
+      </aside>
+    </div>
+  {% else %}
+    <div class="mt-6 space-y-3">
+      {% for order in page.object_list %}
+        <a data-customer-panel-link href="{% url 'accounts:dashboard' %}?tab=orders&order={{ order.pk }}" class="block rounded-2xl border border-line bg-surface p-5 transition hover:border-primary">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 class="font-extrabold text-foreground">Order #{{ order.pk }}</h3>
+              <p class="mt-1 text-xs text-muted">{{ order.created_at|date:"d M Y, g:i A" }} · {{ order.lines.all|length }} product line(s)</p>
+            </div>
+            <div class="text-right">
+              <p class="font-extrabold text-foreground">৳{{ order.subtotal_bdt|floatformat:2 }}</p>
+              <p class="mt-1 text-xs font-bold text-primary">{{ order.summary_status }}</p>
+            </div>
+          </div>
+        </a>
+      {% empty %}
+        <div class="rounded-2xl border border-dashed border-line bg-surface px-6 py-14 text-center">
+          <h3 class="text-lg font-extrabold">No orders yet</h3>
+          <p class="mt-2 text-sm text-muted">Approved marketplace products are available for manual COD order requests.</p>
+          <a href="{% url 'catalog:marketplace_list' %}" class="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-xs font-bold text-on-primary">Explore marketplace</a>
+        </div>
+      {% endfor %}
+    </div>
+    {% if page.has_other_pages %}
+      <nav aria-label="Order pagination" class="mt-6 flex justify-center gap-3 text-sm">
+        {% if page.has_previous %}<a data-customer-panel-link href="{% url 'accounts:dashboard' %}?tab=orders&page={{ page.previous_page_number }}" class="rounded-lg border border-line px-3 py-2 font-semibold text-primary">← Previous</a>{% endif %}
+        <span class="px-2 py-2 text-muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}<a data-customer-panel-link href="{% url 'accounts:dashboard' %}?tab=orders&page={{ page.next_page_number }}" class="rounded-lg border border-line px-3 py-2 font-semibold text-primary">Next →</a>{% endif %}
+      </nav>
+    {% endif %}
+  {% endif %}
+</section>
