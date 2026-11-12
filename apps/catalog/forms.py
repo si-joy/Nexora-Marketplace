@@ -43,6 +43,8 @@ class ProductForm(forms.Form):
             field.widget.attrs["class"] = input_class
             if name.startswith("image_"):
                 field.widget.attrs["accept"] = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                field.widget.attrs["class"] = "absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                field.widget.attrs["aria-label"] = f"Choose or replace gallery image {name.split('_')[-1]}"
         self.fields["category"].queryset = Category.objects.filter(is_active=True).order_by("name")
         self.fields["brand"].queryset = Brand.objects.filter(is_active=True).order_by("name")
         if product is not None and not self.is_bound:
@@ -117,13 +119,37 @@ class ProductForm(forms.Form):
     def clean(self):
         cleaned = super().clean()
         images = []
-        for name in ("image", "image_1", "image_2", "image_3", "image_4", "image_5"):
+        image_slots = {}
+
+        # Slot indexes are stable between create and edit. A file selected for
+        # an existing slot replaces that photo; empty slots add a new photo.
+        for index in range(5):
+            name = f"image_{index + 1}"
             uploaded = cleaned.get(name)
             if uploaded:
                 cleaned[name] = self._clean_uploaded_image(uploaded)
+                image_slots[index] = cleaned[name]
                 images.append(cleaned[name])
-        existing_count = self.product.images.count() if self.product is not None else 0
-        if existing_count + len(images) > 5:
-            raise forms.ValidationError("A product can have at most 5 gallery images.")
+
+        legacy = cleaned.get("image")
+        if legacy:
+            cleaned["image"] = self._clean_uploaded_image(legacy)
+            images.append(cleaned["image"])
+
+        existing_slots = (
+            set(self.product.images.values_list("sort_order", flat=True))
+            if self.product is not None else set()
+        )
+        new_count = sum(1 for position in image_slots if position not in existing_slots)
+        if legacy:
+            new_count += 1
+        if len(existing_slots) + new_count > 5:
+            raise forms.ValidationError(
+                "The gallery has five slots. Replace an existing image instead of adding a sixth."
+            )
+
+        # Preserve old callers that inspect the images list, while the upload
+        # service uses image_slots to distinguish replacements from additions.
         cleaned["images"] = images
+        cleaned["image_slots"] = image_slots
         return cleaned
