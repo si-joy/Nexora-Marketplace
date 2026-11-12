@@ -64,10 +64,16 @@
           {% endwith %}
         </div>
         <div class="mt-5">
-          <button type="button" disabled aria-disabled="true" class="w-full cursor-not-allowed rounded-xl bg-surface-soft px-5 py-3.5 text-sm font-bold text-muted">Real cart coming soon</button>
+          {% with variant=product.shop_variant %}
+            {% if variant and variant.available_stock > 0 and product.bdt_price != None %}
+              <button type="button" data-add-real-bag data-variant-id="{{ variant.pk }}" class="w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-on-primary transition hover:bg-primary-hover">Add to bag</button>
+            {% else %}
+              <button type="button" disabled class="w-full cursor-not-allowed rounded-xl bg-surface-soft px-5 py-3.5 text-sm font-bold text-muted">Currently unavailable</button>
+            {% endif %}
+          {% endwith %}
 
         </div>
-        <p class="mt-3 text-xs leading-5 text-muted">Seller stock is displayed for reference. Real cart, checkout and payment are not enabled yet.</p>
+        <p class="mt-3 text-xs leading-5 text-muted">Sign in to save real products to your account. Adding to the bag does not reserve stock; checkout and payment remain unavailable.</p>
       </div>
 
       <div class="mt-4 flex items-center justify-between gap-3 rounded-[18px] border border-line bg-surface px-5 py-4">
@@ -128,7 +134,7 @@
         </section>
         <section class="rounded-[18px] bg-surface-soft p-5 sm:p-6">
           <h3 class="text-sm font-extrabold text-foreground">Before you order</h3>
-          <p class="mt-2 text-sm leading-7 text-muted">Stock shown here is informational. Orders, cart reservation and payments will be added in a later phase.</p>
+          <p class="mt-2 text-sm leading-7 text-muted">Your shopping bag is not an order or stock reservation. Checkout and payments are planned for a later phase.</p>
         </section>
       </aside>
     </div>
