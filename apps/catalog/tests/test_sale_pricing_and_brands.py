@@ -1,0 +1,104 @@
+"""Sale pricing is real BDT price; crossed-out amount is for display only."""
+from decimal import Decimal
+
+import pytest
+from django.urls import reverse
+
+from apps.catalog.forms import ProductForm
+from apps.catalog.models import Brand, ProductVariantPrice
+from apps.catalog.services.products import create_product, update_product
+from apps.shopping.services import _price
+
+from .test_real_catalog import approved_seller, category, cleaned
+
+
+@pytest.mark.django_db
+def test_seller_form_accepts_valid_regular_and_sale_price(category):
+    form = ProductForm({
+        "name": "Discounted Audio", "category": category.pk, "brand": "",
+        "new_brand_name": "Acme Audio", "sku": "SALE-TEST-01",
+        "price_bdt": "950.00", "sale_price_bdt": "650.00",
+    })
+    assert form.is_valid(), form.errors.as_json()
+    assert form.cleaned_data["sale_price_bdt"] == Decimal("650.00")
+
+
+@pytest.mark.django_db
+def test_seller_form_rejects_equal_or_higher_sale_and_brand_conflicts(category):
+    brand = Brand.objects.create(name="Existing Brand", slug="existing-brand")
+    base = {
+        "name": "Sale Test", "category": category.pk, "sku": "SALE-TEST-02",
+        "price_bdt": "950.00",
+    }
+    for bad in ("950.00", "1050.00"):
+        form = ProductForm({**base, "sale_price_bdt": bad})
+        assert not form.is_valid()
+        assert "sale_price_bdt" in form.errors
+    form = ProductForm({**base, "brand": brand.pk, "new_brand_name": "Another Brand"})
+    assert not form.is_valid()
+    assert "new_brand_name" in form.errors
+
+
+@pytest.mark.django_db
+def test_create_sale_price_is_cart_price_and_original_is_crossed_out(
+    client, approved_seller, category
+):
+    seller, _, _ = approved_seller
+    values = cleaned(category)
+    values["new_brand_name"] = "Acme Beauty"
+    values["price_bdt"] = Decimal("950.00")
+    values["sale_price_bdt"] = Decimal("650.00")
+    product = create_product(seller=seller, cleaned=values)
+    variant = product.variants.first()
+    price = ProductVariantPrice.objects.get(variant=variant)
+    assert product.brand.name == "Acme Beauty"
+    assert price.amount == Decimal("650.00")
+    assert price.compare_at_amount == Decimal("950.00")
+    assert product.bdt_price == Decimal("650.00")
+    assert product.bdt_compare_at_price == Decimal("950.00")
+    assert _price(variant.pk) == Decimal("650.00")
+    product.status = product.Status.PUBLISHED
+    product.save(update_fields=["status"])
+    response = client.get(reverse("catalog:marketplace_detail", args=[product.slug]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "৳650.00" in html
+    assert "<del" in html
+    assert "৳950.00" in html
+    assert "Acme Beauty" in html
+
+
+@pytest.mark.django_db
+def test_edit_price_without_sale_clears_old_discount_and_preserves_brand(
+    approved_seller, category
+):
+    seller, _, _ = approved_seller
+    values = cleaned(category)
+    values.update({
+        "price_bdt": Decimal("1200.00"),
+        "sale_price_bdt": Decimal("850.00"),
+        "new_brand_name": "Reusable Brand",
+    })
+    product = create_product(seller=seller, cleaned=values)
+    brand = product.brand
+    values["price_bdt"] = Decimal("1100.00")
+    values["sale_price_bdt"] = None
+    values["new_brand_name"] = "reusable brand"
+    update_product(seller=seller, product_id=product.pk, cleaned=values)
+    product.refresh_from_db()
+    assert product.brand_id == brand.pk
+    assert Brand.objects.filter(name__iexact="reusable brand").count() == 1
+    assert product.bdt_price == Decimal("1100.00")
+    assert product.bdt_compare_at_price is None
+
+
+@pytest.mark.django_db
+def test_edit_form_prepopulates_sale_and_original(category, approved_seller):
+    seller, _, _ = approved_seller
+    values = cleaned(category)
+    values["price_bdt"] = Decimal("950.00")
+    values["sale_price_bdt"] = Decimal("650.00")
+    product = create_product(seller=seller, cleaned=values)
+    form = ProductForm(product=product)
+    assert form.initial["price_bdt"] == Decimal("950.00")
+    assert form.initial["sale_price_bdt"] == Decimal("650.00")
