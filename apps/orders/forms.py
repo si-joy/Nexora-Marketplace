@@ -20,6 +20,18 @@ class CheckoutForm(forms.Form):
         label="I understand this is a manual cash-on-delivery order request. No online payment is processed.",
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            if name == "agree":
+                field.widget.attrs["class"] = "mt-1 size-5 shrink-0 accent-primary"
+            else:
+                field.widget.attrs["class"] = (
+                    "mt-1.5 block w-full rounded-xl border border-line bg-surface "
+                    "px-3.5 py-3 text-sm text-foreground placeholder:text-muted "
+                    "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+                )
+
     def clean_phone(self):
         phone = self.cleaned_data["phone"].strip()
         if not re.fullmatch(r"\+?[0-9][0-9\s-]{7,22}", phone):
