@@ -8,8 +8,11 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.catalog.demo_data import DEMO_PRODUCTS
+from apps.catalog.orm_selectors import live_products
 
 from .services import add_to_cart, cart_snapshot, clear_cart, set_cart_quantity
+from .models import MarketplaceWishlistItem
+from .saved_items import (saved_snapshot, change_demo_cart, clear_demo_cart, toggle_demo_wishlist, toggle_marketplace_wishlist)
 
 
 def cart(request):
@@ -17,7 +20,11 @@ def cart(request):
 
 
 def wishlist(request):
-    return render(request, "pages/wishlist.html", {"demo_products": DEMO_PRODUCTS})
+    marketplace_favorites = []
+    if request.user.is_authenticated and request.user.is_active:
+        ids = MarketplaceWishlistItem.objects.filter(user=request.user).values_list("product_id", flat=True)
+        marketplace_favorites = list(live_products().filter(pk__in=ids))
+    return render(request, "pages/wishlist.html", {"demo_products": DEMO_PRODUCTS, "marketplace_favorites": marketplace_favorites})
 
 
 def _error(message, status=400):
@@ -87,5 +94,35 @@ def real_cart_clear(request):
     try:
         _json_body(request)
         return JsonResponse(clear_cart(user=request.user))
+    except ValidationError as error:
+        return _error("; ".join(error.messages))
+
+
+@require_GET
+def account_saved_get(request):
+    return JsonResponse(saved_snapshot(request.user))
+
+
+@require_POST
+def account_saved_change(request):
+    if not _auth_required(request):
+        return _error("Sign in to save items to your account.", 401)
+    try:
+        data = _json_body(request)
+        action = data.get("action")
+        if action == "demo_cart_set":
+            snapshot = change_demo_cart(
+                user=request.user, product_id=data.get("product_id"),
+                quantity=data.get("quantity"),
+            )
+        elif action == "demo_cart_clear":
+            snapshot = clear_demo_cart(user=request.user)
+        elif action == "demo_wishlist_toggle":
+            snapshot = toggle_demo_wishlist(user=request.user, product_id=data.get("product_id"))
+        elif action == "marketplace_wishlist_toggle":
+            snapshot = toggle_marketplace_wishlist(user=request.user, product_id=data.get("product_id"))
+        else:
+            raise ValidationError("Unknown saved-item action.")
+        return JsonResponse(snapshot)
     except ValidationError as error:
         return _error("; ".join(error.messages))
