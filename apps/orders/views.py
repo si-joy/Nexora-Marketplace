@@ -45,6 +45,13 @@ def checkout(request):
         messages.error(request, "; ".join(error.messages))
         return redirect("shopping:cart")
 
+    quote = {
+        "total": str(subtotal),
+        "items": [[item["variant"].pk, item["quantity"]] for item in lines],
+    }
+    if request.method == "GET":
+        request.session["order_checkout_quote"] = quote
+
     form = CheckoutForm(
         request.POST or None,
         initial={
@@ -54,16 +61,20 @@ def checkout(request):
     if request.method == "POST":
         if request.POST.get("checkout_token") != token or not token:
             form.add_error(None, "Checkout expired. Reload this page and try again.")
+        elif request.session.get("order_checkout_quote") != quote:
+            form.add_error(None, "Your bag or prices changed. Reload checkout to review the current total.")
         elif form.is_valid():
             try:
                 order = place_order(
                     user=request.user, token=token,
                     details=form.cleaned_data, variant_id=variant_id, quantity=quantity,
+                    expected_total=subtotal,
                 )
             except ValidationError as error:
                 form.add_error(None, error)
             else:
                 request.session.pop("order_checkout_token", None)
+                request.session.pop("order_checkout_quote", None)
                 messages.success(request, "Your cash-on-delivery order request was saved.")
                 return redirect("orders:customer_order_detail", order_id=order.pk)
     return render(request, "orders/checkout.html", {
