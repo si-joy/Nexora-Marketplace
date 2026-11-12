@@ -433,6 +433,17 @@
     drawer?.querySelectorAll("[data-clear-cart]").forEach((button) => {
       button.disabled = cart.length === 0 && realCart.item_count === 0;
     });
+    const checkout = drawer?.querySelector("[data-real-checkout-link]");
+    const hint = drawer?.querySelector("[data-real-checkout-hint]");
+    const hasReal = realCart.items.length > 0;
+    const validReal = hasReal && realCart.items.every((item) => item.is_available);
+    if (checkout) checkout.hidden = !validReal;
+    if (hint) {
+      hint.hidden = validReal;
+      hint.textContent = !hasReal
+        ? "Checkout is available for approved marketplace products only, not demo items."
+        : "Fix unavailable marketplace items before checkout.";
+    }
   }
   drawer?.querySelector("[data-clear-cart]")?.addEventListener("click", async () => {
     if (!realApi.authenticated) return;
@@ -498,6 +509,16 @@
     minus.addEventListener("click", () => set(Number(output.textContent) - 1));
     plus.addEventListener("click", () => set(Number(output.textContent) + 1));
     set(1);
+  });
+
+  document.querySelectorAll("[data-direct-buy]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const quantity = Number(document.querySelector("[data-real-qty-value]")?.textContent || 1);
+      const url = new URL(link.href);
+      url.searchParams.set("quantity", String(quantity));
+      // Link remains a normal navigational GET, with quantity validated again server-side.
+      link.href = url.pathname + url.search;
+    });
   });
 
   document.querySelectorAll("[data-add-real-bag]").forEach((button) => {
