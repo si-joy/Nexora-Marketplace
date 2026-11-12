@@ -21,6 +21,11 @@
   let toastTimeout;
   let closeTimeout;
 
+  // Old browser-only demo keys must never show a previous customer's items.
+  try {
+    localStorage.removeItem("nexora.demo.favorites");
+    localStorage.removeItem("nexora.demo.bag");
+  } catch { /* Browser storage might be disabled. */ }
   // No account data is read from localStorage. All saved items are account-owned.
   let favorites = new Set();
   let marketplaceFavorites = new Set();
@@ -44,6 +49,7 @@
     window.location.href = `${realApi.login}?next=${next}`;
   }
   function applySavedState(state) {
+    realApi.authenticated = !!state?.authenticated;
     if (!state?.authenticated) {
       favorites = new Set();
       marketplaceFavorites = new Set();
@@ -374,7 +380,7 @@
       row.append(visual, content);
       list.append(row);
     }
-    if (quantities.size && realCart.items.length) list.append(el("div", "cart-section-title", "Demo products · This browser only"));
+    if (quantities.size && realCart.items.length) list.append(el("div", "cart-section-title", "Demo products · Saved to your account"));
     for (const [id, quantity] of quantities) {
       const item = catalog.get(id);
       if (!item) continue;
@@ -450,7 +456,7 @@
         updateBadges();
         renderCart();
       }
-    } catch { /* Demo cart remains usable while the network is offline. */ }
+    } catch { /* Existing saved-item state remains unchanged on API failure. */ }
   }
 
   async function writeReal(url, payload) {
