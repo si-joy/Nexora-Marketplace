@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}My orders | Nexora{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-6xl px-4 pb-20 pt-9 sm:px-6">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div><p class="section-overline">MY NEXORA</p><h1 class="mt-2 text-3xl font-black tracking-tight">My orders</h1><p class="mt-2 text-sm text-muted">Track your manual COD order requests and seller updates.</p></div>
+    <a href="{% url 'catalog:marketplace_list' %}" class="text-sm font-bold text-primary hover:underline">Continue shopping →</a>
+  </div>
+  <div class="mt-8 space-y-4">
+    {% for order in orders %}
+      <a href="{% url 'orders:customer_order_detail' order.pk %}" class="block rounded-2xl border border-line bg-surface p-5 transition hover:border-primary">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 class="font-extrabold text-foreground">Order #{{ order.pk }}</h2><p class="mt-1 text-xs text-muted">{{ order.created_at|date:"d M Y, g:i A" }} · {{ order.lines.all|length }} product line(s)</p></div>
+          <div class="text-right"><p class="font-extrabold text-foreground">৳{{ order.subtotal_bdt|floatformat:2 }}</p><p class="mt-1 text-xs font-semibold text-primary">{{ order.summary_status }}</p></div>
+        </div>
+      </a>
+    {% empty %}
+      <div class="rounded-2xl border border-dashed border-line bg-surface p-12 text-center">
+        <h2 class="text-lg font-extrabold text-foreground">No orders yet</h2>
+        <p class="mt-2 text-sm text-muted">Start with approved marketplace products to place your first order request.</p>
+        <a href="{% url 'catalog:marketplace_list' %}" class="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-bold text-on-primary">Explore marketplace</a>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

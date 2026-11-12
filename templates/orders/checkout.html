@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Checkout request | Nexora{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-6xl px-4 pb-20 pt-9 sm:px-6 xl:px-8">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div><p class="section-overline">MANUAL ORDER REQUEST</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Checkout</h1>
+      <p class="mt-3 text-sm text-muted">Cash on delivery · No online payment is collected</p>
+    </div>
+    <a href="{% url 'shopping:cart' %}" class="text-sm font-bold text-primary hover:underline">Back to bag</a>
+  </div>
+  <div class="mt-8 grid items-start gap-7 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,.9fr)]">
+    <form method="post" class="rounded-2xl border border-line bg-surface p-5 sm:p-7">
+      {% csrf_token %}
+      <input type="hidden" name="checkout_token" value="{{ checkout_token }}">
+      {% if variant_id %}<input type="hidden" name="variant" value="{{ variant_id }}"><input type="hidden" name="quantity" value="{{ quantity }}">{% endif %}
+      <h2 class="text-lg font-extrabold text-foreground">Delivery details</h2>
+      <p class="mt-2 text-xs leading-6 text-muted">Use a reachable phone and complete Bangladesh delivery address.</p>
+      {% if form.non_field_errors %}<div role="alert" class="mt-4 rounded-xl border border-danger p-3 text-sm text-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        {% include 'components/forms/field.html' with field=form.contact_name %}
+        {% include 'components/forms/field.html' with field=form.phone %}
+        <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.address_line %}</div>
+        {% include 'components/forms/field.html' with field=form.area %}
+        {% include 'components/forms/field.html' with field=form.postal_code %}
+        <div class="sm:col-span-2">{% include 'components/forms/field.html' with field=form.notes %}</div>
+      </div>
+      <div class="mt-5 flex items-start gap-3 rounded-xl bg-surface-soft p-4">
+        {{ form.agree }}
+        <div class="min-w-0">
+          <label for="{{ form.agree.id_for_label }}" class="text-xs font-semibold leading-6 text-foreground">{{ form.agree.label }}</label>
+          {% for error in form.agree.errors %}<p class="mt-1 text-xs text-danger">{{ error }}</p>{% endfor %}
+        </div>
+      </div>
+      <button type="submit" class="mt-6 w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-on-primary hover:bg-primary-hover">Place COD order request</button>
+      <p class="mt-3 text-xs leading-6 text-muted">A submitted request reserves listed stock pending seller processing. Shipping charges and taxes have not been calculated; the final payable amount needs seller confirmation.</p>
+    </form>
+    <aside class="rounded-2xl border border-line bg-surface p-5 sm:p-7">
+      <h2 class="text-lg font-extrabold text-foreground">Order summary</h2>
+      <div class="mt-4 divide-y divide-line">
+      {% for item in lines %}
+        <div class="flex justify-between gap-4 py-4 text-sm">
+          <div class="min-w-0"><p class="font-bold text-foreground">{{ item.variant.product.name }}</p>
+            <p class="mt-1 text-xs text-muted">{{ item.variant.product.store.name }} · Qty {{ item.quantity }}</p>
+          </div>
+          <strong class="shrink-0 text-foreground">৳{{ item.line_total|floatformat:2 }}</strong>
+        </div>
+      {% endfor %}
+      </div>
+      <div class="mt-3 flex justify-between border-t border-line pt-4 text-base"><span class="font-bold">Product subtotal</span><strong>৳{{ subtotal|floatformat:2 }}</strong></div>
+      <p class="mt-4 text-xs leading-6 text-muted">Delivery costs, if applicable, are confirmed separately. Do not send payment through a third-party link.</p>
+    </aside>
+  </div>
+</section>
+{% endblock %}

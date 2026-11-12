@@ -34,7 +34,8 @@ python manage.py runserver
 - `apps/accounts/` — custom email-based user, forms, views, auth URLs and tests.
 - `apps/vendors/` — seller profile and store, application form, transactional services, admin approval actions, dashboard and tests.
 - `apps/catalog/` — separate demo catalog plus relational category/product/variant/image models, seller product services, admin review and live marketplace pages.
-- `apps/shopping/` — shared animated cart drawer and browser-only wishlist (not a backend checkout).
+- `apps/shopping/` — account-backed demo/real cart and wishlists with a shared animated cart drawer.
+- `apps/orders/` — manual COD checkout requests, stock reservations and customer/seller order tracking; online payments are not enabled.
 - `templates/components/` — reusable navigation, drawer, form fields, error boxes, product card and footer.
 - `static/src/css/app.css` — centralized semantic theme tokens for both light/dark mode.
 

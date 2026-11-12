@@ -7,6 +7,7 @@
     <div class="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-line bg-surface p-2 shadow-xl shadow-ink/10">
       <p class="truncate border-b border-line px-3 py-2 text-xs text-muted" title="{{ request.user.email }}">{{ request.user.email }}</p>
       <a href="{% url 'accounts:dashboard' %}" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-soft">My dashboard</a>
+      <a href="{% url 'orders:customer_orders' %}" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-soft">My orders</a>
       <a href="{% url 'vendors:dashboard' %}" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-soft">Seller center</a>
       <a href="{% url 'accounts:password_change' %}" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-soft">Security settings</a>
       {% if request.user.is_staff %}<a href="{% url 'admin:index' %}" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-soft">Admin panel</a>{% endif %}

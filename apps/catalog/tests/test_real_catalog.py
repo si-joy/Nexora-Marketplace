@@ -160,7 +160,8 @@ def test_marketplace_tile_shows_cart_icon_for_stocked_product(client, approved_s
     assert 'data-add-real-bag' in html
     assert f'data-variant-id="{variant.pk}"' in html
     assert "Buy now" in html
-    assert "Checkout coming soon" in html
+    assert reverse("orders:checkout") + f"?variant={variant.pk}" in html
+    assert "Checkout coming soon" not in html
 
 
 @pytest.mark.django_db

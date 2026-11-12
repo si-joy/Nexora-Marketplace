@@ -40,4 +40,8 @@ def dashboard(request):
     store = Store.objects.filter(seller=profile, status=Store.Status.ACTIVE).first()
     if store is None:
         return render(request, "vendors/application_status.html", {"profile": profile, "store_unavailable": True})
-    return render(request, "vendors/dashboard.html", {"profile": profile, "store": store, "product_count": store.products.count()})
+    return render(request, "vendors/dashboard.html", {
+        "profile": profile, "store": store, "product_count": store.products.count(),
+        "order_count": store.order_lines.count(),
+        "pending_order_count": store.order_lines.filter(status="pending").count(),
+    })
