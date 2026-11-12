@@ -1,0 +1,40 @@
+name: Django and CSS checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      SECRET_KEY: ci-only-unsafe-secret-do-not-use-in-production
+      DATABASE_URL: sqlite:///db.sqlite3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements/development.txt
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements/development.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Check Django configuration
+        run: python manage.py check
+      - name: Check migrations are committed
+        run: python manage.py makemigrations --check --dry-run
+      - name: Run regression tests
+        run: python -m pytest -q
+      - name: Compile CSS
+        run: npm run build:css
