@@ -132,6 +132,68 @@
   }
   function updateHearts() {
     document.querySelectorAll("[data-favorite-toggle]").forEach((button) => {
+      const active = favorites.has(button.dataset.itemId);
+      button.setAttribute("aria-pressed", String(active));
+      button.setAttribute("aria-label", `${active ? "Remove" : "Save"} ${button.dataset.itemName || "item"} ${active ? "from" : "to"} wishlist`);
+      if (!button.closest("[data-product]")) button.textContent = active ? "♥ Saved" : "♡ Save";
+    });
+    document.querySelectorAll("[data-marketplace-favorite]").forEach((button) => {
+      const id = Number(button.dataset.productId);
+      const active = marketplaceFavorites.has(id);
+      button.setAttribute("aria-pressed", String(active));
+      button.setAttribute("aria-label", `${active ? "Remove" : "Save"} ${button.dataset.productName || "item"} ${active ? "from" : "to"} wishlist`);
+      const icon = button.querySelector("[data-heart-icon]");
+      if (icon) icon.textContent = active ? "♥" : "♡";
+    });
+  }
+  function refreshWishlist() {
+    const grid = document.getElementById("wishlist-grid");
+    if (!grid) return;
+    let demoCount = 0;
+    grid.querySelectorAll("[data-product]").forEach((card) => {
+      const visible = favorites.has(card.dataset.productId);
+      card.hidden = !visible;
+      if (visible) demoCount++;
+    });
+    grid.hidden = demoCount === 0;
+    let realCount = 0;
+    document.querySelectorAll("[data-saved-marketplace-item]").forEach((item) => {
+      const active = marketplaceFavorites.has(Number(item.dataset.productId));
+      item.hidden = !active;
+      if (active) realCount++;
+    });
+    const realGrid = document.getElementById("marketplace-wishlist-grid");
+    if (realGrid) realGrid.hidden = realCount === 0;
+    const empty = document.getElementById("wishlist-empty");
+    if (empty) empty.hidden = demoCount + realCount !== 0;
+  }
+  function refreshHomeFilters() {
+    if (!filters.length) return;
+    let visibleCount = 0;
+    cards.forEach((card) => {
+      const visible = category === "all" || card.dataset.productCategory === category;
+      card.hidden = !visible;
+      if (visible) visibleCount += 1;
+    });
+    const results = document.getElementById("product-results");
+    if (results) results.textContent = `${visibleCount} product${visibleCount === 1 ? "" : "s"}`;
+    const empty = document.getElementById("products-empty");
+    if (empty) empty.hidden = visibleCount > 0;
+    filters.forEach((button) => {
+      const active = button.dataset.filter === category;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  }
+  filters.forEach((button) => button.addEventListener("click", () => {
+    category = button.dataset.filter || "all";
+    refreshHomeFilters();
+  }));
+  document.querySelector("[data-clear-filters]")?.addEventListener("click", () => {
+    category = "all";
+    refreshHomeFilters();
+  });
+  document.querySelectorAll("[data-favorite-toggle]").forEach((button) => {
     button.addEventListener("click", async () => {
       const id = button.dataset.itemId;
       if (!catalog.has(id)) return;
