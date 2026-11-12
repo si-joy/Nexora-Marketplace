@@ -107,6 +107,14 @@ class Product(models.Model):
         return next(iter(self.images.all()), None)
 
     @property
+    def default_sellable_variant(self):
+        """Find the active default SKU from prefetched product variants."""
+        return next(
+            (variant for variant in self.variants.all() if variant.is_default and variant.is_active),
+            None,
+        )
+
+    @property
     def bdt_price(self):
         for variant in self.variants.all():
             if not variant.is_active:
