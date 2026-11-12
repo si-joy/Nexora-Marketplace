@@ -38,6 +38,7 @@
   const realApi = {
     get: realConfig?.dataset.get,
     add: realConfig?.dataset.add,
+    update: realConfig?.dataset.update,
     clear: realConfig?.dataset.clear,
     token: realConfig?.dataset.csrf,
     authenticated: realConfig?.dataset.authenticated === "true",
@@ -405,9 +406,9 @@
   }
 
   async function changeRealQuantity(variantId, quantity) {
-    if (!realApi.add) return;
+    if (!realApi.update) return;
     try {
-      await writeReal(`${realApi.add}${variantId}/`, { quantity });
+      await writeReal(`${realApi.update}${variantId}/`, { quantity });
     } catch (error) { notify(error.message); }
   }
 

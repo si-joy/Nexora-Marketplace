@@ -18,6 +18,14 @@
   <main id="main-content">{% block content %}{% endblock %}</main>
   {% include 'components/footer.html' %}
   {% include 'components/cart_drawer.html' %}
+  <div id="real-cart-api" hidden
+       data-get="{% url 'shopping:real_cart_get' %}"
+       data-add="{% url 'shopping:real_cart_add' %}"
+       data-update="/api/market-cart/update/"
+       data-clear="{% url 'shopping:real_cart_clear' %}"
+       data-csrf="{{ csrf_token }}"
+       data-login="{% url 'accounts:login' %}"
+       data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"></div>
   <div id="storefront-toast" class="storefront-toast" role="status" aria-live="polite"></div>
   {{ demo_catalog_products|json_script:"demo-catalog-json" }}
   <script defer src="{% static 'js/storefront.js' %}"></script>
