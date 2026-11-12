@@ -5,8 +5,8 @@
   <div class="rounded-[28px] bg-surface-soft p-8 md:p-11">
     <p class="section-overline">JOIN THE MARKETPLACE</p>
     <h1 class="mt-3 text-4xl font-black leading-tight tracking-tight text-foreground">Discover more.<br><span class="text-primary">Together.</span></h1>
-    <p class="mt-5 text-sm leading-7 text-muted">One account to explore, save favorites and apply to open your own store. Your email address will be used to sign in.</p>
-    <div class="mt-9 grid gap-3 text-sm font-semibold text-foreground"><p>✓ Customer dashboard included</p><p>✓ Apply to sell whenever you're ready</p><p>✓ No seller access without admin approval</p></div>
+    <p class="mt-5 text-sm leading-7 text-muted">Explore the demo shop, manage your customer account and apply to sell with a single email-based login.</p>
+    <div class="mt-9 grid gap-3 text-sm font-semibold text-foreground"><p>✓ Customer dashboard included</p><p>✓ Apply to sell whenever you're ready</p><p>✓ Seller access only after admin approval</p></div>
   </div>
   <div class="rounded-[26px] border border-line bg-surface p-6 shadow-sm md:p-9">
     <p class="section-overline">GET STARTED</p><h2 class="mt-2 text-2xl font-extrabold text-foreground">Create your account</h2><p class="mt-2 text-sm text-muted">Already a member? <a href="{% url 'accounts:login' %}" class="font-bold text-primary hover:underline">Sign in</a></p>
@@ -16,7 +16,7 @@
       {% include 'components/forms/field.html' with field=form.password1 %}
       {% include 'components/forms/field.html' with field=form.password2 %}
       <button type="submit" class="w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-on-primary hover:bg-primary-hover">Create free account →</button>
-      <p class="text-xs leading-5 text-muted">This starter uses email/password login. Email verification and login rate limiting are required before public launch.</p>
+      <p class="text-xs leading-5 text-muted">This preview uses email/password sign-in. Email verification and sign-in rate limits are required before public launch.</p>
     </form>
   </div>
 </section>

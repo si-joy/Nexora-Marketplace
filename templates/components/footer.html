@@ -1,18 +1,26 @@
 <footer class="mt-16 border-t border-line bg-surface">
-  <div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-[1.2fr_1fr_1fr] sm:px-6 xl:px-8">
+  <div class="mx-auto grid max-w-7xl gap-9 px-4 py-12 sm:grid-cols-[1.2fr_1fr_1fr] sm:px-6 xl:px-8">
     <div class="max-w-xs">
-      <span class="text-2xl font-extrabold tracking-[-.06em] text-foreground">nexora<span class="text-primary">.</span></span>
-      <p class="mt-3 text-sm leading-7 text-muted">A thoughtful space to discover your next favorite thing. Built to grow into a multi-vendor marketplace.</p>
-      <span class="mt-4 inline-flex rounded-full bg-surface-soft px-3 py-1.5 text-[11px] font-bold text-muted">Phase 02 · Accounts & seller onboarding</span>
+      <a href="{% url 'core:home' %}" aria-label="Nexora home" class="text-2xl font-extrabold tracking-[-.06em] text-foreground">nexora<span class="text-primary">.</span></a>
+      <p class="mt-3 text-sm leading-7 text-muted">Explore curated tech previews and discover approved independent sellers in one place.</p>
+      <span class="mt-4 inline-flex rounded-full border border-line bg-surface-soft px-3 py-1.5 text-[11px] font-bold text-muted">Marketplace preview · Checkout not yet live</span>
     </div>
+    <nav aria-label="Footer navigation">
+      <h2 class="text-sm font-extrabold text-foreground">Explore</h2>
+      <div class="mt-4 flex flex-col gap-3 text-sm text-muted">
+        <a href="{% url 'catalog:marketplace_list' %}" class="hover:text-primary">Approved seller listings</a>
+        <a href="{% url 'catalog:shop' %}" class="hover:text-primary">Demo products</a>
+        <a href="{% url 'catalog:categories' %}" class="hover:text-primary">Browse categories</a>
+        <a href="{% url 'catalog:stores' %}" class="hover:text-primary">Demo stores</a>
+        <a href="{% url 'vendors:apply' %}" class="hover:text-primary">Become a seller</a>
+        <a href="{% url 'accounts:dashboard' %}" class="hover:text-primary">My account</a>
+      </div>
+    </nav>
     <div>
-      <h3 class="text-sm font-bold text-foreground">Explore</h3>
-      <div class="mt-4 flex flex-col gap-3 text-sm text-muted"><a href="{% url 'catalog:categories' %}" class="hover:text-primary">Categories</a><a href="{% url 'catalog:shop' %}" class="hover:text-primary">Shop products</a><a href="{% url 'catalog:stores' %}" class="hover:text-primary">Seller stores</a><a href="{% url 'vendors:apply' %}" class="hover:text-primary">Start selling</a><a href="{% url 'accounts:dashboard' %}" class="hover:text-primary">My account</a></div>
-    </div>
-    <div>
-      <h3 class="text-sm font-bold text-foreground">Project status</h3>
-      <p class="mt-4 text-sm leading-7 text-muted">Products and prices are sample data. Account registration and seller approval are now available. Products, orders and payments are still demo features.</p>
+      <h2 class="text-sm font-extrabold text-foreground">What works today</h2>
+      <p class="mt-4 text-sm leading-7 text-muted">Account sign-in, seller approval and moderated product listings are available. Demo shopping bags and wishlists are browser-only. Orders and payments are not yet supported.</p>
+      <p class="mt-3 text-xs leading-6 text-muted">Please do not use the demo storefront to place real orders.</p>
     </div>
   </div>
-  <div class="border-t border-line"><div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-2 px-4 py-5 text-xs text-muted sm:px-6 xl:px-8"><span>© 2026 Nexora — demo storefront</span><span>Designed with light & dark themes</span></div></div>
+  <div class="border-t border-line"><div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-2 px-4 py-5 text-xs text-muted sm:px-6 xl:px-8"><span>© 2026 Nexora · Marketplace preview</span><span>Light & dark appearance supported</span></div></div>
 </footer>
