@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 from apps.catalog.services.products import require_seller_store
@@ -128,7 +129,11 @@ def seller_update_line(request, line_id):
             new_status=request.POST.get("status", ""),
         )
     except ValidationError as error:
+        if request.headers.get("X-Seller-Panel") == "1":
+            return JsonResponse({"ok": False, "error": "; ".join(error.messages)}, status=400)
         messages.error(request, "; ".join(error.messages))
     else:
+        if request.headers.get("X-Seller-Panel") == "1":
+            return JsonResponse({"ok": True})
         messages.success(request, "Order status updated.")
     return redirect("orders:seller_orders")
