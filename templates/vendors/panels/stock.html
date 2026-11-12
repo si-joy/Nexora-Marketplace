@@ -1,0 +1,42 @@
+<section data-seller-panel-view="stock" aria-labelledby="seller-stock-title">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="section-overline">SELLER CENTER / INVENTORY</p>
+      <h2 id="seller-stock-title" data-seller-panel-heading tabindex="-1" class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Stock overview<span class="text-primary">.</span></h2>
+      <p class="mt-2 text-sm text-muted">Track stock on hand, reserved units and available quantities.</p>
+    </div>
+    <a href="{% url 'catalog:seller_product_create' %}" class="rounded-xl border border-line bg-surface px-4 py-3 text-xs font-bold text-primary hover:border-primary">Add product →</a>
+  </div>
+  <div class="mt-6 overflow-hidden rounded-2xl border border-line bg-surface">
+    {% if rows %}
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[590px] text-left text-sm">
+          <thead class="bg-surface-soft text-xs font-bold uppercase tracking-wider text-muted">
+            <tr><th scope="col" class="px-5 py-4">Product / SKU</th><th scope="col" class="px-4 py-4 text-right">On hand</th><th scope="col" class="px-4 py-4 text-right">Reserved</th><th scope="col" class="px-4 py-4 text-right">Available</th><th scope="col" class="px-5 py-4 text-right">Action</th></tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            {% for row in rows %}
+              <tr>
+                <td class="px-5 py-4"><span class="block break-words font-extrabold text-foreground">{{ row.variant.product.name }}</span><span class="mt-1 block break-all text-xs text-muted">{{ row.variant.sku }}</span></td>
+                <td class="px-4 py-4 text-right font-bold text-foreground">{{ row.quantity }}</td>
+                <td class="px-4 py-4 text-right text-muted">{{ row.reserved }}</td>
+                <td class="px-4 py-4 text-right"><span class="rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold {% if row.available > 0 %}text-success{% else %}text-danger{% endif %}">{{ row.available }}</span></td>
+                <td class="px-5 py-4 text-right"><a href="{% url 'inventory:adjust' row.variant.pk %}" class="inline-flex rounded-lg border border-line px-3 py-2 text-xs font-bold text-primary hover:border-primary">Adjust stock →</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="px-6 py-14 text-center"><h3 class="text-lg font-extrabold">No stock items yet</h3><p class="mt-2 text-sm text-muted">Create a product to start managing inventory.</p></div>
+    {% endif %}
+  </div>
+  {% if page.has_other_pages %}
+  <nav aria-label="Stock pagination" class="mt-6 flex justify-center gap-3 text-sm">
+    {% if page.has_previous %}<a data-seller-panel-link href="{% url 'vendors:dashboard' %}?tab=stock&page={{ page.previous_page_number }}" class="rounded-lg border border-line px-3 py-2 font-semibold text-primary">← Previous</a>{% endif %}
+    <span class="px-2 py-2 text-muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a data-seller-panel-link href="{% url 'vendors:dashboard' %}?tab=stock&page={{ page.next_page_number }}" class="rounded-lg border border-line px-3 py-2 font-semibold text-primary">Next →</a>{% endif %}
+  </nav>
+  {% endif %}
+  <p class="mt-4 text-xs leading-6 text-muted">Stock adjustments and deliveries are recorded. Reserved stock is not available for new orders.</p>
+</section>
